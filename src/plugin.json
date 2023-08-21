@@ -2,14 +2,14 @@
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
   "type": "app",
   "name": "Grafana Reporter Plugin",
-  "id": "kirychukyurii-grafanareporterplugin-app",
+  "id": "kirychukyurii-reporter-app",
   "backend": true,
   "executable": "gpx_grafana_reporter_plugin",
   "info": {
     "keywords": ["app"],
     "description": "",
     "author": {
-      "name": "Kirychukyurii"
+      "name": "kirychukyurii"
     },
     "logos": {
       "small": "img/logo.svg",
