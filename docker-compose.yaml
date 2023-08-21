@@ -2,7 +2,7 @@ version: '3.0'
 
 services:
   grafana:
-    container_name: 'kirychukyurii-grafanareporterplugin-app'
+    container_name: 'grafana-reporter-plugin'
     build:
       context: ./.config
       args:
@@ -11,5 +11,5 @@ services:
     ports:
       - 3000:3000/tcp
     volumes:
-      - ./dist:/var/lib/grafana/plugins/kirychukyurii-grafanareporterplugin-app
+      - ./dist:/var/lib/grafana/plugins/grafana-reporter-plugin
       - ./provisioning:/etc/grafana/provisioning
