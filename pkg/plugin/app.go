@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/models"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/service"
 	"net/http"
 )
 
@@ -23,7 +24,7 @@ var (
 type App struct {
 	settings models.ReporterAppSetting
 	router   *mux.Router
-	handler  handler.ReportHandler
+	handler  handler.Handler
 }
 
 // New creates a new *App instance.
@@ -37,6 +38,9 @@ func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 	if err := app.settings.Validate(); err != nil {
 		return nil, err
 	}
+
+	svc := service.New()
+	app.handler = handler.New(svc)
 
 	app.router = mux.NewRouter()
 	app.registerRoutes()
@@ -68,6 +72,6 @@ func (a *App) Dispose() {
 }
 
 func (a *App) registerRoutes() {
-	a.router.HandleFunc("/ping", a.handlePing)
-	a.router.HandleFunc("/echo", a.handleEcho)
+	a.router.HandleFunc("/ping", a.handler.Ping)
+	a.router.HandleFunc("/echo", a.handler.Echo)
 }
