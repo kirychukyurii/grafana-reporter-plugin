@@ -1,15 +1,23 @@
 package service
 
-import "github.com/kirychukyurii/grafana-reporter-plugin/pkg/service/report"
+import (
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/grafana"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/models"
+)
 
-type Service struct {
-	Reporter report.Service
+type Service interface {
+	Reporter
+	ReportScheduler
 }
 
-func New() Service {
-	reportService := report.New()
+type service struct {
+	settings          models.ReporterAppSetting
+	grafanaHTTPClient grafana.GrafanaHTTPAdapter
+}
 
-	return Service{
-		Reporter: reportService,
+func New(settings models.ReporterAppSetting, client grafana.GrafanaHTTPAdapter) Service {
+	return &service{
+		settings:          settings,
+		grafanaHTTPClient: client,
 	}
 }

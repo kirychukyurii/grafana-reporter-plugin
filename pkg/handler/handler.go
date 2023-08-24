@@ -12,8 +12,16 @@ type Handler interface {
 	Ping(w http.ResponseWriter, req *http.Request)
 	Echo(w http.ResponseWriter, req *http.Request)
 
-	CreateReport(w http.ResponseWriter, req *http.Request)
-	ScheduleReport(w http.ResponseWriter, req *http.Request)
+	Report(w http.ResponseWriter, req *http.Request)
+	Reports(w http.ResponseWriter, req *http.Request)
+	NewReport(w http.ResponseWriter, req *http.Request)
+	UpdateReport(w http.ResponseWriter, req *http.Request)
+	DeleteReport(w http.ResponseWriter, req *http.Request)
+
+	ReportSchedule(w http.ResponseWriter, req *http.Request)
+	NewReportSchedule(w http.ResponseWriter, req *http.Request)
+	UpdateReportSchedule(w http.ResponseWriter, req *http.Request)
+	DeleteReportSchedule(w http.ResponseWriter, req *http.Request)
 }
 
 type handler struct {

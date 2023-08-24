@@ -70,8 +70,3 @@ func (a *App) CheckHealth(_ context.Context, _ *backend.CheckHealthRequest) (*ba
 func (a *App) Dispose() {
 	// cleanup
 }
-
-func (a *App) registerRoutes() {
-	a.router.HandleFunc("/ping", a.handler.Ping)
-	a.router.HandleFunc("/echo", a.handler.Echo)
-}
