@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/models"
 )
@@ -37,8 +38,11 @@ func (c *Client) Dashboard(ctx context.Context, opts models.DashboardOpts) (*Das
 
 	dashboardUrl := fmt.Sprintf("%s/api/dashboards/uid/%s", c.Setting.GrafanaBaseURL, opts.DashboardID)
 	if len(opts.Variables) > 0 {
-		dashboardUrl = fmt.Sprintf("%s?%s", dashboardUrl, opts.Variables.Encode())
+		dashboardUrl = fmt.Sprintf("%s?%s", dashboardUrl, opts.EncodeVariables())
 	}
+
+	var u url.Values
+	u.Encode()
 
 	body, err := c.Request(ctx, "GET", dashboardUrl, nil)
 	if err != nil {

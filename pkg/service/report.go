@@ -26,7 +26,7 @@ func (s *service) NewReport(ctx context.Context, report models.Report) error {
 	for _, r := range report.Dashboards {
 		opts := models.DashboardOpts{
 			DashboardID: r.Dashboard.UID,
-			Variables:   r.Variables,
+			//Variables:   r.Variables,
 		}
 
 		dashboard, err := s.grafanaHTTPClient.Dashboard(ctx, opts)
@@ -34,7 +34,7 @@ func (s *service) NewReport(ctx context.Context, report models.Report) error {
 			return err
 		}
 
-		tmpDir := filepath.Join(s.settings.TemporaryDirectory, utils.NewUUID().String())
+		_ = filepath.Join(s.settings.TemporaryDirectory, utils.NewUUID().String())
 
 		panelsCnt := len(dashboard.Model.Panels)
 		panels := make(chan gutils.Panel, panelsCnt)
@@ -51,7 +51,7 @@ func (s *service) NewReport(ctx context.Context, report models.Report) error {
 			workers = panelsCnt
 		}
 
-		g, gctx := errgroup.WithContext(ctx)
+		g, _ := errgroup.WithContext(ctx)
 		for i := 0; i < workers; i++ {
 			g.Go(func() error {
 				return nil

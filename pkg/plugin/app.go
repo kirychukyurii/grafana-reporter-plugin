@@ -2,11 +2,16 @@ package plugin
 
 import (
 	"context"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/migration"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/models"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/service"
 	"net/http"
@@ -39,7 +44,23 @@ func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 		return nil, err
 	}
 
-	svc := service.New()
+	l := log.New()
+
+	l.Info("starting new db instance")
+	database, err := db.New()
+	if err != nil {
+		return nil, fmt.Errorf("database: %v", err)
+	}
+
+	l.Info("starting embedded migrations")
+	if err = migration.Migrate(database); err != nil {
+
+		return nil, fmt.Errorf("migrate: %v", err)
+	}
+
+	gclient, _ := grafana.New(app.settings)
+
+	svc := service.New(app.settings, gclient)
 	app.handler = handler.New(svc)
 
 	app.router = mux.NewRouter()
