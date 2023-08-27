@@ -15,7 +15,7 @@ create table report_schedules
     frequency          varchar,
     interval_frequency varchar,
     interval_amount    varchar,
-    workdays_only      varchar,
+    workdays_only      boolean,
     day_of_month       integer
 );
 -- +goose StatementEnd
