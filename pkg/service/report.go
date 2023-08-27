@@ -14,11 +14,16 @@ import (
 )
 
 type Reporter interface {
-	Report(ctx context.Context, reportID int) (*models.Report, error)
+	Report(ctx context.Context, id int) (*models.Report, error)
 	NewReport(ctx context.Context, report models.Report) error
 }
 
-func (s *service) Report(ctx context.Context, reportID int) (*models.Report, error) {
+func (s *service) Report(ctx context.Context, id int) (*models.Report, error) {
+	_, err := s.database.Report(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 

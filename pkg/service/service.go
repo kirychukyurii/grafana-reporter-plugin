@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/grafana"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/models"
 )
 
@@ -11,13 +12,17 @@ type Service interface {
 }
 
 type service struct {
-	settings          models.ReporterAppSetting
+	settings models.ReporterAppSetting
+
+	database          store.DatabaseAdapter
 	grafanaHTTPClient grafana.GrafanaHTTPAdapter
 }
 
-func New(settings models.ReporterAppSetting, client grafana.GrafanaHTTPAdapter) Service {
+func New(settings models.ReporterAppSetting, database store.DatabaseAdapter, client grafana.GrafanaHTTPAdapter) Service {
 	return &service{
-		settings:          settings,
+		settings: settings,
+
+		database:          database,
 		grafanaHTTPClient: client,
 	}
 }
