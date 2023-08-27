@@ -6,15 +6,17 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/migration"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/models"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/service"
 	"net/http"
+	"time"
 )
 
 // Make sure App implements required interfaces.
@@ -34,39 +36,55 @@ type App struct {
 
 // New creates a new *App instance.
 func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
-	var app App
-
-	if err := app.settings.Load(s); err != nil {
+	backend.Logger.Info("load conf")
+	settings := models.ReporterAppSetting{}
+	if err := settings.Load(s); err != nil {
 		return nil, err
 	}
 
-	if err := app.settings.Validate(); err != nil {
+	if err := settings.Validate(); err != nil {
 		return nil, err
 	}
 
-	l := log.New()
+	return newApp(settings)
+}
 
-	l.Info("starting new db instance")
+func newApp(settings models.ReporterAppSetting) (*App, error) {
 	database, err := db.New()
 	if err != nil {
 		return nil, fmt.Errorf("database: %v", err)
 	}
 
-	l.Info("starting embedded migrations")
 	if err = migration.Migrate(database); err != nil {
 
 		return nil, fmt.Errorf("migrate: %v", err)
 	}
 
-	gclient, _ := grafana.New(app.settings)
+	gclient, _ := grafana.New(settings)
+	s := store.New()
+	svc := service.New(settings, s, gclient)
+	router := mux.NewRouter()
+	app := &App{
+		settings: settings,
+		router:   router,
+		handler:  handler.New(svc),
+	}
 
-	svc := service.New(app.settings, gclient)
-	app.handler = handler.New(svc)
-
-	app.router = mux.NewRouter()
 	app.registerRoutes()
 
-	return &app, nil
+	return app, nil
+}
+
+func runScheduler() error {
+	timezone, err := time.LoadLocation("Local")
+	if err != nil {
+		return err
+	}
+
+	scheduler := cron.NewScheduler(timezone)
+	scheduler.Cron.StartAsync()
+
+	return nil
 }
 
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +93,7 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // CallResource HTTP style resource
 func (a *App) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
-	return httpadapter.New(a).CallResource(ctx, req, sender)
+	return httpadapter.New(a.router).CallResource(ctx, req, sender)
 }
 
 // CheckHealth handles health checks sent from Grafana to the plugin.
@@ -89,5 +107,5 @@ func (a *App) CheckHealth(_ context.Context, _ *backend.CheckHealthRequest) (*ba
 // Dispose here tells plugin SDK that plugin wants to clean up resources when a new instance
 // created.
 func (a *App) Dispose() {
-	// cleanup
+	backend.Logger.Info("Called when the settings change", "cfg", a.settings)
 }
