@@ -7,17 +7,15 @@ import (
 	"fmt"
 
 	"github.com/valyala/fasthttp"
-
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/models"
 )
 
 // Client is a Grafana API client.
 type Client struct {
-	Setting models.ReporterAppSetting
+	Setting model.ReporterAppSetting
 	HTTP    *fasthttp.Client
 }
 
-func New(setting models.ReporterAppSetting) (*Client, error) {
+func New(setting model.ReporterAppSetting) (*Client, error) {
 	cli := fasthttp.Client{
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: setting.InsecureSkipVerify,

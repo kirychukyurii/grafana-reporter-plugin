@@ -6,13 +6,34 @@ import (
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
-	"github.com/go-rod/rod/lib/utils"
 )
 
-func (b *browser) Page(url ...string) (*rod.Page, error) {
+type Pager interface {
+	Get(browser *rod.Browser) (*rod.Page, error)
+	Put(p *rod.Page)
+	Cleanup() error
+}
+
+func newPage(browser *rod.Browser, url ...string) (*rod.Page, error) {
+	p, err := browser.Page(proto.TargetCreateTarget{
+		URL: strings.Join(url, "/"),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return p, nil
+}
+
+type page struct {
+	page *rod.Page
+}
+
+func (p *page) New(browser *rod.Browser, url ...string) (*rod.Page, error) {
 	var err error
 
-	b.page, err = b.browser.Page(proto.TargetCreateTarget{
+	p.page, err = browser.Page(proto.TargetCreateTarget{
 		URL: strings.Join(url, "/"),
 	})
 
@@ -21,16 +42,16 @@ func (b *browser) Page(url ...string) (*rod.Page, error) {
 	}
 
 	// Start to analyze request events
-	wait := b.page.MustWaitRequestIdle()
+	wait := p.page.MustWaitRequestIdle()
 
 	// Wait until there's no active requests
 	wait()
 
-	return b.page, nil
+	return p.page, nil
 }
 
-func (b *browser) ExtraHeaders(headers []string) (func(), error) {
-	f, err := b.page.SetExtraHeaders(headers)
+func (p *page) ExtraHeaders(headers []string) (func(), error) {
+	f, err := p.page.SetExtraHeaders(headers)
 	if err != nil {
 		return nil, fmt.Errorf("set extra headers: %v", err)
 	}
@@ -38,8 +59,8 @@ func (b *browser) ExtraHeaders(headers []string) (func(), error) {
 	return f, nil
 }
 
-func (b *browser) Click(selector string, jsRegex string) error {
-	e, err := b.page.ElementR(selector, jsRegex)
+func (p *page) Click(selector string, jsRegex string) error {
+	e, err := p.page.ElementR(selector, jsRegex)
 	if err != nil {
 		return fmt.Errorf("read element: %v", err)
 	}
@@ -51,16 +72,19 @@ func (b *browser) Click(selector string, jsRegex string) error {
 	return nil
 }
 
-func (b *browser) Screenshot() {
+func (p *page) Screenshot() {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (b *browser) DownloadFile(path string) error {
-	wait := b.browser.MustWaitDownload()
+/*
+func (p *page) DownloadFile(path string) error {
+	wait := p.browser.MustWaitDownload()
 	if err := utils.OutputFile(path, wait()); err != nil {
 		return fmt.Errorf("save file: %v", err)
 	}
 
 	return nil
 }
+
+*/

@@ -1,5 +1,23 @@
 package grafana
 
+type PanelType int
+
+const (
+	SingleStat PanelType = iota
+	Text
+	Graph
+	Table
+)
+
+func (p PanelType) string() string {
+	return [...]string{
+		"singlestat",
+		"text",
+		"graph",
+		"table",
+	}[p]
+}
+
 type GridPos struct {
 	H int `json:"h"`
 	W int `json:"w"`
@@ -30,4 +48,12 @@ type RowPanels struct {
 	Collapsed bool    `json:"collapsed"`
 	GridPos   GridPos `json:"gridPos"`
 	Panels    []Panel `json:"panels"`
+}
+
+func (p Panel) Is(t PanelType) bool {
+	return p.Type == t.string()
+}
+
+func (p Panel) IsTable() bool {
+	return p.Is(Table)
 }

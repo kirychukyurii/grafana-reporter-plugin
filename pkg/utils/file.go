@@ -2,9 +2,14 @@ package utils
 
 import (
 	"fmt"
+	"github.com/go-rod/rod/lib/utils"
 	"os"
 	"time"
 )
+
+func OutputFile(p string, data interface{}) error {
+	return utils.OutputFile(p, data)
+}
 
 // Create one file
 func Create(name string) (*os.File, error) {

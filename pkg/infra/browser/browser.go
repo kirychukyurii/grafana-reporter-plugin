@@ -3,31 +3,22 @@ package browser
 import (
 	"context"
 	"fmt"
+	"github.com/go-rod/rod/lib/launcher/flags"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
 	"net"
 	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
-	"github.com/go-rod/rod/lib/launcher/flags"
-
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/models"
 )
 
 type Browser interface {
-	Page(url ...string) (*rod.Page, error)
-	ExtraHeaders(headers []string) (func(), error)
-	Click(selector string, jsRegex string) error
-	Screenshot()
-	DownloadFile(path string) error
+	Get(settings model.ReporterAppSetting) (*rod.Browser, error)
+	Put(b *rod.Browser)
+	Cleanup() error
 }
 
-type browser struct {
-	launcher *launcher.Launcher
-	browser  *rod.Browser
-	page     *rod.Page
-}
-
-func New(settings *models.ReporterAppSetting) (Browser, error) {
+func newBrowser(settings model.ReporterAppSetting) (*rod.Browser, error) {
 	browserLoaded := browserTimeoutDetector(10 * time.Second)
 	defer browserLoaded()
 
@@ -57,14 +48,9 @@ func New(settings *models.ReporterAppSetting) (Browser, error) {
 		return nil, fmt.Errorf("browser launcher: %v", err)
 	}
 
-	b := rod.New().
-		Timeout(time.Minute).
-		ControlURL(url)
+	b := rod.New().Timeout(time.Minute).ControlURL(url)
 
-	return &browser{
-		launcher: launch,
-		browser:  b,
-	}, nil
+	return b, nil
 }
 
 func browserTimeoutDetector(duration time.Duration) context.CancelFunc {

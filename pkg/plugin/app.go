@@ -13,7 +13,7 @@ import (
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/migration"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/models"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/service"
 	"net/http"
 	"time"
@@ -29,7 +29,7 @@ var (
 )
 
 type App struct {
-	settings models.ReporterAppSetting
+	settings model.ReporterAppSetting
 	router   *mux.Router
 	handler  handler.Handler
 }
@@ -37,7 +37,7 @@ type App struct {
 // New creates a new *App instance.
 func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 	backend.Logger.Info("load conf")
-	settings := models.ReporterAppSetting{}
+	settings := model.ReporterAppSetting{}
 	if err := settings.Load(s); err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 	return newApp(settings)
 }
 
-func newApp(settings models.ReporterAppSetting) (*App, error) {
+func newApp(settings model.ReporterAppSetting) (*App, error) {
 	database, err := db.New()
 	if err != nil {
 		return nil, fmt.Errorf("database: %v", err)

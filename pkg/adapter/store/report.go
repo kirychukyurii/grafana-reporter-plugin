@@ -3,7 +3,7 @@ package store
 import (
 	"context"
 
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/models/dto"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model/dto"
 )
 
 type Reporter interface {
