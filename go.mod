@@ -3,7 +3,7 @@ module github.com/kirychukyurii/grafana-reporter-plugin
 go 1.19
 
 require (
-	github.com/go-co-op/gocron v1.32.1
+	github.com/go-co-op/gocron v1.33.1
 	github.com/go-rod/rod v0.114.3
 	github.com/google/uuid v1.3.1
 	github.com/gorilla/mux v1.8.0
