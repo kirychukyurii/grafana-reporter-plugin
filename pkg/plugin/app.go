@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/browser"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
@@ -36,7 +37,6 @@ type App struct {
 
 // New creates a new *App instance.
 func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
-	backend.Logger.Info("load conf")
 	settings := model.ReporterAppSetting{}
 	if err := settings.Load(s); err != nil {
 		return nil, err
@@ -60,9 +60,10 @@ func newApp(settings model.ReporterAppSetting) (*App, error) {
 		return nil, fmt.Errorf("migrate: %v", err)
 	}
 
+	browserPool := browser.NewBrowserPool(2)
 	gclient, _ := grafana.New(settings)
 	s := store.New()
-	svc := service.New(settings, s, gclient)
+	svc := service.New(settings, s, gclient, browserPool)
 	router := mux.NewRouter()
 	app := &App{
 		settings: settings,
@@ -107,5 +108,5 @@ func (a *App) CheckHealth(_ context.Context, _ *backend.CheckHealthRequest) (*ba
 // Dispose here tells plugin SDK that plugin wants to clean up resources when a new instance
 // created.
 func (a *App) Dispose() {
-	backend.Logger.Info("Called when the settings change", "cfg", a.settings)
+	backend.Logger.Info("called when the settings change", "cfg", a.settings)
 }

@@ -20,11 +20,12 @@ type service struct {
 	browserPool       browser.Browser
 }
 
-func New(settings model.ReporterAppSetting, database store.DatabaseAdapter, client grafana.GrafanaHTTPAdapter) Service {
+func New(settings model.ReporterAppSetting, database store.DatabaseAdapter, client grafana.GrafanaHTTPAdapter, browserPool browser.Browser) Service {
 	return &service{
 		settings: settings,
 
 		database:          database,
 		grafanaHTTPClient: client,
+		browserPool:       browserPool,
 	}
 }

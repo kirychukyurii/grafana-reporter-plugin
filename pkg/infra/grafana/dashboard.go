@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
 	"net/url"
 )
 

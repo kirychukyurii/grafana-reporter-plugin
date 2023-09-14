@@ -2,6 +2,7 @@ package grafana
 
 import (
 	"context"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
 
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
 )

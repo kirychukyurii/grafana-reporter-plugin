@@ -9,6 +9,8 @@ const (
 	Table
 )
 
+const k = 40
+
 func (p PanelType) string() string {
 	return [...]string{
 		"singlestat",
@@ -56,4 +58,20 @@ func (p Panel) Is(t PanelType) bool {
 
 func (p Panel) IsTable() bool {
 	return p.Is(Table)
+}
+
+func (p Panel) Width() int {
+	return p.GridPos.W * k
+}
+
+func (p Panel) Height() int {
+	return p.GridPos.H * k
+}
+
+func (p Panel) X() int {
+	return p.GridPos.X * k
+}
+
+func (p Panel) Y() int {
+	return p.GridPos.Y * k
 }

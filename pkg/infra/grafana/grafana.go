@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
 
 	"github.com/valyala/fasthttp"
 )
@@ -29,6 +30,8 @@ func New(setting model.ReporterAppSetting) (*Client, error) {
 }
 
 func (c *Client) Request(ctx context.Context, requestMethod, requestUrl string, requestPayload any) ([]byte, error) {
+	var err error
+
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 
@@ -45,14 +48,13 @@ func (c *Client) Request(ctx context.Context, requestMethod, requestUrl string, 
 	}
 
 	if auth := c.Setting.BasicAuth.String(); auth != "" {
-		req.Header.Add("Authorization", fmt.Sprintf("Basic %s", auth))
+		req.Header.Add("Authorization", auth)
 	}
 
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
-	err := c.HTTP.Do(req, resp)
-	if err != nil {
+	if err = c.HTTP.Do(req, resp); err != nil {
 		return nil, fmt.Errorf("client get failed: %v", err)
 	}
 

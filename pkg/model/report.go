@@ -19,7 +19,7 @@ type ReportDashboardIdentifier struct {
 type ReportDashboard struct {
 	Dashboard ReportDashboardIdentifier `json:"dashboard"`
 	TimeRange ReportDashboardTimeRange  `json:"time_range"`
-	Variables map[string]string         `json:"report_variables"`
+	Variables map[string]string         `json:"variables"`
 }
 
 // ReportOptions represents the options for a Grafana report.

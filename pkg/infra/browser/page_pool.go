@@ -2,9 +2,16 @@ package browser
 
 import (
 	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/proto"
 )
 
 type PagePool chan *rod.Page
+
+type Pager interface {
+	Get(browser *rod.Browser) (*rod.Page, error)
+	Put(p *rod.Page)
+	Cleanup() error
+}
 
 func NewPagePool(limit int) PagePool {
 	pp := make(chan *rod.Page, limit)
@@ -44,4 +51,16 @@ func (pp PagePool) Cleanup() error {
 	}
 
 	return nil
+}
+
+func newPage(browser *rod.Browser, url ...string) (*rod.Page, error) {
+	p, err := browser.Page(proto.TargetCreateTarget{
+		URL: "", // strings.Join(url, "/"),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return p, nil
 }

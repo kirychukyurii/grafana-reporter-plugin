@@ -3,7 +3,6 @@ package browser
 import (
 	"context"
 	"fmt"
-	"github.com/go-rod/rod/lib/launcher/flags"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
 	"net"
 	"time"
@@ -19,36 +18,58 @@ type Browser interface {
 }
 
 func newBrowser(settings model.ReporterAppSetting) (*rod.Browser, error) {
-	browserLoaded := browserTimeoutDetector(10 * time.Second)
-	defer browserLoaded()
-
-	launch := launcher.New().
-		Headless(true).
-		Leakless(true).
-		Devtools(false).
-		NoSandbox(true).
-		Set("disable-web-security") // TODO: ensure we have proper CORS
-
-	if settings.Browser.Url != "" {
-		host, port, _ := net.SplitHostPort(settings.Browser.Url)
-		launch = launch.Set("remote-debugging-address", host).Set(flags.RemoteDebuggingPort, port)
-	}
-
-	if settings.Browser.BinPath != "" {
-		launch = launch.Bin(settings.Browser.BinPath)
-	}
-
-	defer func() {
-		launch.Kill()
-		avoidStall(3*time.Second, launch.Cleanup)
-	}()
-
-	url, err := launch.Launch()
+	ips, err := net.LookupIP("chrome")
 	if err != nil {
-		return nil, fmt.Errorf("browser launcher: %v", err)
+		return nil, fmt.Errorf("net.LookupIP: %v", err)
 	}
 
-	b := rod.New().Timeout(time.Minute).ControlURL(url)
+	launch, err := launcher.ResolveURL(fmt.Sprintf("%s:9222", ips[0]))
+	if err != nil {
+		return nil, fmt.Errorf("launcher.ResolveURL: %v", err)
+	}
+
+	b := rod.New().ControlURL(launch)
+	if err = b.Connect(); err != nil {
+		return nil, fmt.Errorf("browser.Connect [%s]: %v", launch, err)
+	}
+
+	//browserLoaded := browserTimeoutDetector(10 * time.Second)
+	//defer browserLoaded()
+
+	/*
+		launch := launcher.New().
+			Headless(true).
+			Leakless(true).
+			Devtools(false).
+			NoSandbox(true).
+			Set("disable-web-security"). // TODO: ensure we have proper CORS
+
+		if settings.Browser.Url != "" {
+			host, port, _ := net.SplitHostPort(settings.Browser.Url)
+			launch = launch.Set("remote-debugging-address", host).Set(flags.RemoteDebuggingPort, port)
+		}
+
+	*/
+
+	/*
+		if settings.Browser.BinPath != "" {
+			launch = launch.Bin(settings.Browser.BinPath)
+		}
+
+		defer func() {
+			launch.Kill()
+			avoidStall(3*time.Second, launch.Cleanup)
+		}()
+
+
+
+		url, err := launch.Launch()
+		if err != nil {
+			return nil, fmt.Errorf("browser launcher: %v", err)
+		}
+
+		b := rod.New().Timeout(time.Minute).ControlURL(url)
+	*/
 
 	return b, nil
 }

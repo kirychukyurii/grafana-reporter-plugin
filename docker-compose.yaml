@@ -1,8 +1,12 @@
-version: '3.0'
+version: "3.0"
+
+networks:
+  grafana-network:
 
 services:
+
   grafana:
-    container_name: 'grafana-reporter-plugin'
+    container_name: "grafana-reporter-plugin"
     build:
       context: ./.config
       args:
@@ -11,8 +15,25 @@ services:
     environment:
       - GF_LOG_LEVEL=debug
     ports:
-      - 3000:3000/tcp
+      - "3000:3000/tcp"
+    networks:
+      - grafana-network
     volumes:
       - ./dist:/var/lib/grafana/plugins/grafana-reporter-plugin
       - ./.config/database.db:/opt/reporter/database.db
       - ./provisioning:/etc/grafana/provisioning
+      - ./.config/tmp:/opt/reporter/tmp
+
+  chrome:
+    container_name: "headless-chrome"
+    image: "ghcr.io/go-rod/rod:latest"
+    command:
+      - "chrome"
+      - "--headless"
+      - "--no-sandbox"
+      - "--remote-debugging-port=9222"
+      - "--remote-debugging-address=0.0.0.0"
+    ports:
+      - "9222:9222/tcp"
+    networks:
+      - grafana-network

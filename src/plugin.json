@@ -6,7 +6,7 @@
   "backend": true,
   "executable": "gpx_grafana_reporter_plugin",
   "info": {
-    "keywords": ["app"],
+    "keywords": ["app", "reporting", "email", "pdf", "csv"],
     "description": "",
     "author": {
       "name": "kirychukyurii"
@@ -15,6 +15,16 @@
       "small": "img/logo.svg",
       "large": "img/logo.svg"
     },
+    "links": [
+      {
+        "name": "Website",
+        "url": "https://github.com/kirychukyurii/grafana-reporter-plugin"
+      },
+      {
+        "name": "License",
+        "url": "https://github.com/kirychukyurii/grafana-reporter-plugin/blob/main/LICENSE"
+      }
+    ],
     "screenshots": [],
     "version": "%VERSION%",
     "updated": "%TODAY%"
@@ -22,35 +32,12 @@
   "includes": [
     {
       "type": "page",
-      "name": "Page One",
-      "path": "/a/%PLUGIN_ID%/one",
+      "name": "Schedules",
+      "icon": "fa fa-calendar",
+      "path": "/a/%PLUGIN_ID%/schedules",
       "role": "Admin",
       "addToNav": true,
       "defaultNav": true
-    },
-    {
-      "type": "page",
-      "name": "Page Two",
-      "path": "/a/%PLUGIN_ID%/two",
-      "role": "Admin",
-      "addToNav": true,
-      "defaultNav": false
-    },
-    {
-      "type": "page",
-      "name": "Page Three",
-      "path": "/a/%PLUGIN_ID%/three",
-      "role": "Admin",
-      "addToNav": true,
-      "defaultNav": false
-    },
-    {
-      "type": "page",
-      "name": "Page Four",
-      "path": "/a/%PLUGIN_ID%/four",
-      "role": "Admin",
-      "addToNav": true,
-      "defaultNav": false
     },
     {
       "type": "page",

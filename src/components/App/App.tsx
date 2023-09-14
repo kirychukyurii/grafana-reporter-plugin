@@ -1,21 +1,14 @@
-import React from 'react';
-import { Route, Switch } from 'react-router-dom';
+import * as React from 'react';
 import { AppRootProps } from '@grafana/data';
-import { ROUTES } from '../../constants';
-import { PageFour, PageOne, PageThree, PageTwo } from '../../pages';
-import { prefixRoute } from '../../utils/utils.routing';
+import { PluginPropsContext } from '../../utils/utils.plugin';
+import { Routes } from '../Routes';
 
-export function App(props: AppRootProps) {
-  return (
-      <Switch>
-        <Route exact path={prefixRoute(ROUTES.Two)} component={PageTwo} />
-        <Route exact path={prefixRoute(`${ROUTES.Three}/:id?`)} component={PageThree} />
-
-        {/* Full-width page (this page will have no side navigation) */}
-        <Route exact path={prefixRoute(ROUTES.Four)} component={PageFour} />
-
-        {/* Default page */}
-        <Route component={PageOne} />
-      </Switch>
-  );
+export class App extends React.PureComponent<AppRootProps> {
+    render() {
+        return (
+            <PluginPropsContext.Provider value={this.props}>
+                <Routes />
+            </PluginPropsContext.Provider>
+        );
+    }
 }

@@ -3,6 +3,7 @@ package grafana
 import (
 	"context"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
 )
 
 type GrafanaHTTPAdapter interface {

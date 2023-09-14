@@ -35,3 +35,4 @@ e2e-results/
 .eslintcache
 
 .config/database.db
+.config/tmp

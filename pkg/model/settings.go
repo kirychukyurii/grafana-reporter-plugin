@@ -35,6 +35,12 @@ func (s *ReporterAppSetting) Load(config backend.AppInstanceSettings) error {
 		}
 	}
 
+	s.GrafanaBaseURL = "https://cloud.webitel.ua/grafana"
+	s.BasicAuth.Username = "srvadm"
+	s.BasicAuth.Password = "whogAQgABPkt3wzQ"
+	s.WorkersCount = 1
+	s.TemporaryDirectory = "/opt/reporter/tmp"
+
 	return nil
 }
 
@@ -43,5 +49,5 @@ func (s *ReporterAppSetting) Validate() error {
 }
 
 func (a *BasicAuth) String() string {
-	return base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", a.Username, a.Password)))
+	return fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", a.Username, a.Password))))
 }
