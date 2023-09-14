@@ -7,7 +7,6 @@ import (
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/browser"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
 	"golang.org/x/sync/errgroup"
 	"path/filepath"
@@ -92,9 +91,9 @@ func (s *service) export(ctx context.Context, dashboard *gutils.Dashboard) (err 
 	}
 	defer s.browserPool.Put(b)
 
-	pagePool := browser.NewPagePool(workers)
+	pagePool := rod.NewPagePool(workers)
 
-	defer func(pagePool browser.PagePool) {
+	defer func(pagePool rod.PagePool) {
 		if tmpErr := pagePool.Cleanup(); tmpErr != nil {
 			err = tmpErr
 		}
@@ -133,7 +132,7 @@ func (s *service) export(ctx context.Context, dashboard *gutils.Dashboard) (err 
 	return nil
 }
 
-func (s *service) exportDashboardPNG(dashboard *gutils.Dashboard, tmpDir string, pagePool browser.PagePool, b *rod.Browser) error {
+func (s *service) exportDashboardPNG(dashboard *gutils.Dashboard, tmpDir string, pagePool rod.PagePool, b *rod.Browser) error {
 	page, err := pagePool.Get(b)
 	if err != nil {
 		return err
@@ -223,7 +222,7 @@ func (s *service) exportDashboardPNG(dashboard *gutils.Dashboard, tmpDir string,
 	return nil
 }
 
-func (s *service) exportPanelPNG(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool browser.PagePool, b *rod.Browser, tmpDir string) error {
+func (s *service) exportPanelPNG(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool rod.PagePool, b *rod.Browser, tmpDir string) error {
 	page, err := pagePool.Get(b)
 	if err != nil {
 		return err
@@ -271,7 +270,7 @@ func (s *service) exportPanelPNG(dashboard *gutils.Dashboard, panel gutils.Panel
 	return nil
 }
 
-func (s *service) exportCSV(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool browser.PagePool, b *rod.Browser, tmpDir string) error {
+func (s *service) exportCSV(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool rod.PagePool, b *rod.Browser, tmpDir string) error {
 	page, err := pagePool.Get(b)
 	if err != nil {
 		return err

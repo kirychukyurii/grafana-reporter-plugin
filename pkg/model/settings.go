@@ -8,14 +8,13 @@ import (
 )
 
 type ReporterAppSetting struct {
-	GrafanaBaseURL string
-	BasicAuth      BasicAuth
+	GrafanaBaseURL     string
+	BasicAuth          BasicAuth
+	InsecureSkipVerify bool
 
 	TemporaryDirectory string
 	WorkersCount       int
 	Browser            BrowserSettings
-
-	InsecureSkipVerify bool
 }
 
 type BrowserSettings struct {

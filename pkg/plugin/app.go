@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/browser"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
@@ -60,7 +60,7 @@ func newApp(settings model.ReporterAppSetting) (*App, error) {
 		return nil, fmt.Errorf("migrate: %v", err)
 	}
 
-	browserPool := browser.NewBrowserPool(2)
+	browserPool := cdp.NewBrowserPool(2)
 	gclient, _ := grafana.New(settings)
 	s := store.New()
 	svc := service.New(settings, s, gclient, browserPool)
