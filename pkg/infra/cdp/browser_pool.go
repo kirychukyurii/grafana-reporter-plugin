@@ -25,18 +25,21 @@ func NewBrowserPool(limit int) *BrowserPool {
 	return &BrowserPool{Pool: bp}
 }
 
-func (p *BrowserPool) Get(settings model.ReporterAppSetting) (BrowserManager, error) {
-	var err error
+func (p *BrowserPool) Get(settings model.ReporterAppSetting) (*Browser, error) {
+	var (
+		browser *Browser
+		err     error
+	)
 
 	b := <-p.Pool
 	if b == nil {
-		b, err = NewBrowser(settings)
+		browser, err = NewBrowser(settings)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return b, nil
+	return browser, nil
 }
 
 func (p *BrowserPool) Put(b BrowserManager) {
