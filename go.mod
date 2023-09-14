@@ -7,7 +7,7 @@ require (
 	github.com/go-rod/rod v0.114.3
 	github.com/google/uuid v1.3.1
 	github.com/gorilla/mux v1.8.0
-	github.com/grafana/grafana-plugin-sdk-go v0.173.0
+	github.com/grafana/grafana-plugin-sdk-go v0.175.0
 	github.com/pressly/goose/v3 v3.15.0
 	github.com/valyala/fasthttp v1.49.0
 	golang.org/x/sync v0.3.0
