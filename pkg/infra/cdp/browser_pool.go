@@ -35,6 +35,10 @@ func (p *BrowserPool) Get(settings model.ReporterAppSetting) (*Browser, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		if err = browser.Prepare(); err != nil {
+			return nil, err
+		}
 	}
 
 	return browser, nil

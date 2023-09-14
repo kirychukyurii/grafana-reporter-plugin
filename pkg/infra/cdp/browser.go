@@ -16,6 +16,7 @@ type BrowserManager interface {
 	Close() error
 
 	NewPage() (*Page, error)
+	WaitDownload(dir string) func() (info *proto.PageDownloadWillBegin)
 }
 
 type Browser struct {
@@ -69,4 +70,10 @@ func (b *Browser) NewPage() (*Page, error) {
 	}
 
 	return &Page{Page: p}, nil
+}
+
+func (b *Browser) WaitDownload(dir string) func() (info *proto.PageDownloadWillBegin) {
+	f := b.Browser.WaitDownload(dir)
+
+	return f
 }

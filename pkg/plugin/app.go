@@ -3,10 +3,14 @@ package plugin
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/gorilla/mux"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
+
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
@@ -16,8 +20,6 @@ import (
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/migration"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/service"
-	"net/http"
-	"time"
 )
 
 // Make sure App implements required interfaces.

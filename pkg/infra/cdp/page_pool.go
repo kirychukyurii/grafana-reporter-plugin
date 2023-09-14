@@ -1,12 +1,8 @@
 package cdp
 
-import (
-	"github.com/go-rod/rod"
-)
-
 type PagePoolManager interface {
-	Get(browser *rod.Browser) (*Page, error)
-	Put(p *rod.Page)
+	Get(browser BrowserManager) (*Page, error)
+	Put(p PageManager)
 	Cleanup() error
 }
 

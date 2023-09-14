@@ -4,15 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/go-rod/rod"
-	"github.com/go-rod/rod/lib/proto"
-	"github.com/grafana/grafana-plugin-sdk-go/backend"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
-	"golang.org/x/sync/errgroup"
 	"path/filepath"
-	"time"
 
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"golang.org/x/sync/errgroup"
+
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
 	gutils "github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/utils"
 )
 
@@ -91,9 +90,9 @@ func (s *service) export(ctx context.Context, dashboard *gutils.Dashboard) (err 
 	}
 	defer s.browserPool.Put(b)
 
-	pagePool := rod.NewPagePool(workers)
+	pagePool := cdp.NewPagePool(workers)
 
-	defer func(pagePool rod.PagePool) {
+	defer func(pagePool *cdp.PagePool) {
 		if tmpErr := pagePool.Cleanup(); tmpErr != nil {
 			err = tmpErr
 		}
@@ -132,70 +131,21 @@ func (s *service) export(ctx context.Context, dashboard *gutils.Dashboard) (err 
 	return nil
 }
 
-func (s *service) exportDashboardPNG(dashboard *gutils.Dashboard, tmpDir string, pagePool rod.PagePool, b *rod.Browser) error {
+func (s *service) exportDashboardPNG(dashboard *gutils.Dashboard, tmpDir string, pagePool *cdp.PagePool, b *cdp.Browser) error {
 	page, err := pagePool.Get(b)
 	if err != nil {
 		return err
 	}
 	defer pagePool.Put(page)
 
-	_, err = page.SetExtraHeaders([]string{"Authorization", s.settings.BasicAuth.String()})
-	if err != nil {
-		return err
-	}
-
 	url := fmt.Sprintf("%s/d/%s/db?kiosk&theme=light", s.settings.GrafanaBaseURL, dashboard.Model.Uid)
-	if err = page.Navigate(url); err != nil {
+	headers := []string{"Authorization", s.settings.BasicAuth.String()}
+	if err = page.Prepare(url, headers, nil); err != nil {
 		return err
 	}
 
-	if err = page.WaitLoad(); err != nil {
+	if err = page.ScrollDown(500); err != nil {
 		return err
-	}
-
-	w := page.MustWaitRequestIdle()
-	w()
-
-	scrollHeightObj, err := page.Eval("() => document.documentElement.scrollHeight")
-	if err != nil {
-		return fmt.Errorf("scrollHeightObj: %v", err)
-	}
-
-	clientHeightObj, err := page.Eval("() => document.documentElement.clientHeight")
-	if err != nil {
-		return fmt.Errorf("clientHeightObj: %v", err)
-	}
-
-	/*
-		scrollHeightObj, err := page.Evaluate(&rod.EvalOptions{
-			JS: "document.documentElement.scrollHeight",
-		})
-
-		clientHeightObj, err := page.Evaluate(&rod.EvalOptions{
-			JS: "document.documentElement.clientHeight",
-		})
-	*/
-
-	backend.Logger.Debug("heights", "scrollHeight", scrollHeightObj, "clientHeight", clientHeightObj)
-	scrollHeight := scrollHeightObj.Value.Num()
-	clientHeight := clientHeightObj.Value.Num()
-	backend.Logger.Debug("heights", "scrollHeight", scrollHeight, "clientHeight", clientHeight)
-
-	if scrollHeight < clientHeight {
-
-	}
-
-	scrolls := int(scrollHeight / clientHeight)
-	for i := 1; i < scrolls; i++ {
-		if err = page.Mouse.Scroll(0, clientHeight, 0); err != nil {
-			return fmt.Errorf("scroll: %v", err)
-		}
-
-		time.Sleep(500 * time.Millisecond)
-	}
-
-	if err = page.Mouse.Scroll(0, 0, 0); err != nil {
-		return fmt.Errorf("scroll to 0,0: %v", err)
 	}
 
 	panels, err := page.Elements("[data-panelId]")
@@ -204,7 +154,6 @@ func (s *service) exportDashboardPNG(dashboard *gutils.Dashboard, tmpDir string,
 	}
 
 	panelCount := len(panels)
-
 	panelsRendered, err := page.Elements("[class$='panel-content']")
 	if err != nil {
 		return fmt.Errorf("panel-content elements: %v", err)
@@ -217,60 +166,39 @@ func (s *service) exportDashboardPNG(dashboard *gutils.Dashboard, tmpDir string,
 		backend.Logger.Debug("panelRenderedCount", "i", i, "panelRendered", p)
 	}
 
-	page.MustScreenshotFullPage(filepath.Join(tmpDir, fmt.Sprintf("%s.png", dashboard.Model.Uid)))
+	if err = page.ScreenshotFullPage(filepath.Join(tmpDir, fmt.Sprintf("%s.png", dashboard.Model.Uid))); err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func (s *service) exportPanelPNG(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool rod.PagePool, b *rod.Browser, tmpDir string) error {
+func (s *service) exportPanelPNG(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool *cdp.PagePool, b *cdp.Browser, tmpDir string) error {
 	page, err := pagePool.Get(b)
 	if err != nil {
 		return err
 	}
 	defer pagePool.Put(page)
 
-	if err = page.SetViewport(&proto.EmulationSetDeviceMetricsOverride{Width: panel.Width(), Height: panel.Height()}); err != nil {
-		return err
-	}
-
-	_, err = page.SetExtraHeaders([]string{"Authorization", s.settings.BasicAuth.String()})
-	if err != nil {
-		return err
-	}
-
 	url := fmt.Sprintf("%s/d-solo/%s/db?panelId=%d&width=%d&height=%d&render=1", s.settings.GrafanaBaseURL, dashboard.Model.Uid, panel.Id, panel.Width(), panel.Height())
-	if err = page.Navigate(url); err != nil {
+	headers := []string{"Authorization", s.settings.BasicAuth.String()}
+	viewport := &cdp.PageViewportOpts{
+		Width:  panel.Width(),
+		Height: panel.Height(),
+	}
+
+	if err = page.Prepare(url, headers, viewport); err != nil {
 		return err
 	}
 
-	if err = page.WaitLoad(); err != nil {
+	if err := page.Screenshot(filepath.Join(tmpDir, fmt.Sprintf("panel-%s-%d.png", panel.Type, panel.Id)), false); err != nil {
 		return err
 	}
-
-	w := page.MustWaitRequestIdle()
-	w()
-	/*
-		waitReqIdle := page.WaitRequestIdle(300*time.Millisecond, nil, nil, nil)
-		waitReqIdle()
-	*/
-
-	page.MustScreenshot(filepath.Join(tmpDir, fmt.Sprintf("panel-%s-%d.png", panel.Type, panel.Id)))
-	// page.MustPDF(tmpDir + "test.pdf")
-	/*
-			screenshot, err := page.Screenshot(false, nil)
-			if err != nil {
-				return err
-			}
-
-		if err = utils.OutputFile(tmpDir+"test.png", screenshot); err != nil {
-			return err
-		}
-	*/
 
 	return nil
 }
 
-func (s *service) exportCSV(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool rod.PagePool, b *rod.Browser, tmpDir string) error {
+func (s *service) exportCSV(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool *cdp.PagePool, b *cdp.Browser, tmpDir string) error {
 	page, err := pagePool.Get(b)
 	if err != nil {
 		return err
@@ -287,28 +215,24 @@ func (s *service) exportCSV(dashboard *gutils.Dashboard, panel gutils.Panel, pag
 	*/
 
 	url := fmt.Sprintf("%s/d/%s/db?orgId=1&inspect=%d&inspectTab=data", s.settings.GrafanaBaseURL, dashboard.Model.Uid, panel.Id)
-	if err = page.Navigate(url); err != nil {
+	headers := []string{"Authorization", s.settings.BasicAuth.String()}
+	if err = page.Prepare(url, headers, nil); err != nil {
 		return err
 	}
-
-	if err = page.WaitLoad(); err != nil {
-		return err
-	}
-
-	w := page.MustWaitRequestIdle()
-	w()
 
 	waitDownload := b.WaitDownload(tmpDir)
-	e, err := page.ElementR("span", "Download CSV")
+	e, err := page.Element("span", "Download CSV")
 	if err != nil {
 		return err
 	}
 
-	if err := e.Click(proto.InputMouseButtonLeft, 1); err != nil {
+	if err = e.Click(cdp.InputMouseButtonLeft, 1); err != nil {
 		return err
 	}
 
-	_ = utils.OutputFile(filepath.Join(tmpDir, fmt.Sprintf("panel-%s-%d.csv", panel.Type, panel.Id)), waitDownload())
+	if err = cdp.OutputFile(filepath.Join(tmpDir, fmt.Sprintf("panel-%s-%d.csv", panel.Type, panel.Id)), waitDownload()); err != nil {
+		return err
+	}
 
 	return nil
 }

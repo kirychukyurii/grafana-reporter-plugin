@@ -39,6 +39,7 @@ func (s *ReporterAppSetting) Load(config backend.AppInstanceSettings) error {
 	s.BasicAuth.Password = "whogAQgABPkt3wzQ"
 	s.WorkersCount = 1
 	s.TemporaryDirectory = "/opt/reporter/tmp"
+	s.Browser.Url = "chrome"
 
 	return nil
 }

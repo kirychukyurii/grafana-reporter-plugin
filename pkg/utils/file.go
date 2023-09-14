@@ -2,18 +2,26 @@ package utils
 
 import (
 	"fmt"
-	"github.com/go-rod/rod/lib/utils"
+	"io"
 	"os"
 	"time"
 )
 
-func OutputFile(p string, data interface{}) error {
-	return utils.OutputFile(p, data)
-}
-
 // Create one file
 func Create(name string) (*os.File, error) {
 	return os.Create(name)
+}
+
+func OpenFile(name string, flag int, perm os.FileMode) (*os.File, error) {
+	return os.OpenFile(name, flag, perm)
+}
+
+func WriteFile(name string, data []byte, perm os.FileMode) error {
+	return os.WriteFile(name, data, perm)
+}
+
+func CopyReader(dst io.Writer, src io.Reader) (int64, error) {
+	return io.Copy(dst, src)
 }
 
 // EnsureDir mkdir dir if not exist
