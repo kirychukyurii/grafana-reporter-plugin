@@ -1,13 +1,11 @@
 package cdp
 
 import (
-	"github.com/go-rod/rod"
-
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
 )
 
 type BrowserPoolManager interface {
-	Get(settings model.ReporterAppSetting) (*rod.Browser, error)
+	Get(settings model.ReporterAppSetting) (*Browser, error)
 	Put(b BrowserManager)
 	Cleanup() error
 }

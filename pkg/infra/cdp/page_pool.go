@@ -5,7 +5,7 @@ import (
 )
 
 type PagePoolManager interface {
-	Get(browser *rod.Browser) (*rod.Page, error)
+	Get(browser *rod.Browser) (*Page, error)
 	Put(p *rod.Page)
 	Cleanup() error
 }
