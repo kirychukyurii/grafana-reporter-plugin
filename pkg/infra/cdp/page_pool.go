@@ -20,20 +20,17 @@ func NewPagePool(limit int) *PagePool {
 }
 
 func (pp PagePool) Get(browser BrowserManager) (*Page, error) {
-	var (
-		page *Page
-		err  error
-	)
+	var err error
 
 	p := <-pp.Pool
 	if p == nil {
-		page, err = NewPage(browser)
+		p, err = NewPage(browser)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return page, nil
+	return p.(*Page), nil
 }
 
 func (pp PagePool) Put(p PageManager) {

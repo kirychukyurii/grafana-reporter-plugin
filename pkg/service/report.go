@@ -92,7 +92,7 @@ func (s *service) export(ctx context.Context, dashboard *gutils.Dashboard) (err 
 
 	pagePool := cdp.NewPagePool(workers)
 
-	defer func(pagePool *cdp.PagePool) {
+	defer func(pagePool cdp.PagePoolManager) {
 		if tmpErr := pagePool.Cleanup(); tmpErr != nil {
 			err = tmpErr
 		}
@@ -112,12 +112,12 @@ func (s *service) export(ctx context.Context, dashboard *gutils.Dashboard) (err 
 						return err
 					}
 				*/
+
 				if panel.IsTable() {
 					if err = s.exportCSV(dashboard, panel, pagePool, b, tmpDir); err != nil {
 						return err
 					}
 				}
-
 			}
 
 			return nil
@@ -131,7 +131,7 @@ func (s *service) export(ctx context.Context, dashboard *gutils.Dashboard) (err 
 	return nil
 }
 
-func (s *service) exportDashboardPNG(dashboard *gutils.Dashboard, tmpDir string, pagePool *cdp.PagePool, b *cdp.Browser) error {
+func (s *service) exportDashboardPNG(dashboard *gutils.Dashboard, tmpDir string, pagePool cdp.PagePoolManager, b cdp.BrowserManager) error {
 	page, err := pagePool.Get(b)
 	if err != nil {
 		return err
@@ -173,7 +173,7 @@ func (s *service) exportDashboardPNG(dashboard *gutils.Dashboard, tmpDir string,
 	return nil
 }
 
-func (s *service) exportPanelPNG(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool *cdp.PagePool, b *cdp.Browser, tmpDir string) error {
+func (s *service) exportPanelPNG(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool cdp.PagePoolManager, b cdp.BrowserManager, tmpDir string) error {
 	page, err := pagePool.Get(b)
 	if err != nil {
 		return err
@@ -191,28 +191,19 @@ func (s *service) exportPanelPNG(dashboard *gutils.Dashboard, panel gutils.Panel
 		return err
 	}
 
-	if err := page.Screenshot(filepath.Join(tmpDir, fmt.Sprintf("panel-%s-%d.png", panel.Type, panel.Id)), false); err != nil {
+	if err = page.Screenshot(filepath.Join(tmpDir, fmt.Sprintf("panel-%s-%d.png", panel.Type, panel.Id)), false); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (s *service) exportCSV(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool *cdp.PagePool, b *cdp.Browser, tmpDir string) error {
+func (s *service) exportCSV(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool cdp.PagePoolManager, b cdp.BrowserManager, tmpDir string) error {
 	page, err := pagePool.Get(b)
 	if err != nil {
 		return err
 	}
 	defer pagePool.Put(page)
-
-	/*// https://cloud.webitel.ua/grafana/d/cl1CQ2Gnk/operatory?orgId=1&inspect=4&inspectTab=data
-
-	page, err := pagePool.Get(b, "https://webhook.site/9e65782a-732f-4809-aa23-417eb8e830a1")
-	if err != nil {
-		return err
-	}
-	defer page.Close()
-	*/
 
 	url := fmt.Sprintf("%s/d/%s/db?orgId=1&inspect=%d&inspectTab=data", s.settings.GrafanaBaseURL, dashboard.Model.Uid, panel.Id)
 	headers := []string{"Authorization", s.settings.BasicAuth.String()}
