@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"golang.org/x/sync/errgroup"
@@ -106,8 +107,9 @@ func (s *service) export(ctx context.Context, dashboard *gutils.Dashboard) (err 
 	for i := 0; i < workers; i++ {
 		g.Go(func() error {
 			for panel := range panels {
+				backend.Logger.Debug("processing panel", "panel.id", panel.Id, "panel.title", panel.Title, "panel.type", panel.Type, "output", tmpDir)
+
 				/*
-					backend.Logger.Debug("processing panel", "panel.id", panel.Id, "panel.title", panel.Title, "panel.type", panel.Type, "output", tmpDir)
 					if err = s.exportPanelPNG(dashboard, panel, pagePool, b, tmpDir); err != nil {
 						return err
 					}
@@ -132,6 +134,9 @@ func (s *service) export(ctx context.Context, dashboard *gutils.Dashboard) (err 
 }
 
 func (s *service) exportDashboardPNG(dashboard *gutils.Dashboard, tmpDir string, pagePool cdp.PagePoolManager, b cdp.BrowserManager) error {
+	since := time.Now()
+	defer func() { backend.Logger.Debug(utils.TimeTrack(since)) }()
+
 	page, err := pagePool.Get(b)
 	if err != nil {
 		return err
@@ -174,6 +179,9 @@ func (s *service) exportDashboardPNG(dashboard *gutils.Dashboard, tmpDir string,
 }
 
 func (s *service) exportPanelPNG(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool cdp.PagePoolManager, b cdp.BrowserManager, tmpDir string) error {
+	since := time.Now()
+	defer func() { backend.Logger.Debug(utils.TimeTrack(since)) }()
+
 	page, err := pagePool.Get(b)
 	if err != nil {
 		return err
@@ -199,6 +207,9 @@ func (s *service) exportPanelPNG(dashboard *gutils.Dashboard, panel gutils.Panel
 }
 
 func (s *service) exportCSV(dashboard *gutils.Dashboard, panel gutils.Panel, pagePool cdp.PagePoolManager, b cdp.BrowserManager, tmpDir string) error {
+	since := time.Now()
+	defer func() { backend.Logger.Debug(utils.TimeTrack(since)) }()
+
 	page, err := pagePool.Get(b)
 	if err != nil {
 		return err
@@ -217,7 +228,7 @@ func (s *service) exportCSV(dashboard *gutils.Dashboard, panel gutils.Panel, pag
 		return err
 	}
 
-	if err = e.Click(cdp.InputMouseButtonLeft, 1); err != nil {
+	if err = e.Click(cdp.InputMouseButtonLeft, cdp.InputMouseButtonSingleClick); err != nil {
 		return err
 	}
 

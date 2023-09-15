@@ -37,7 +37,7 @@ func (s *ReporterAppSetting) Load(config backend.AppInstanceSettings) error {
 	s.GrafanaBaseURL = "https://cloud.webitel.ua/grafana"
 	s.BasicAuth.Username = "srvadm"
 	s.BasicAuth.Password = "whogAQgABPkt3wzQ"
-	s.WorkersCount = 1
+	s.WorkersCount = 10
 	s.TemporaryDirectory = "/opt/reporter/tmp"
 	s.Browser.Url = "chrome"
 

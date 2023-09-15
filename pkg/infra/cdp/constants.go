@@ -9,3 +9,8 @@ const (
 	InputMouseButtonBack    = proto.InputMouseButtonBack
 	InputMouseButtonForward = proto.InputMouseButtonForward
 )
+
+const (
+	InputMouseButtonSingleClick = 1
+	MouseButtonDoubleClick      = 2
+)
