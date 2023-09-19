@@ -26,7 +26,7 @@ func NewHeadlessBrowser() Headless {
 	browser := rod.New().ControlURL(url).Trace(true).
 		SlowMotion(2 * time.Second).MustConnect()
 
-	launcher.Open(browser.ServeMonitor(""))
+	//launcher.Open(browser.ServeMonitor(""))
 
 	return Headless{
 		launcher: l,

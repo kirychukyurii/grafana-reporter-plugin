@@ -1,3 +1,3 @@
 package store
 
-type ReportScheduler interface{}
+type ReportScheduleStore interface{}

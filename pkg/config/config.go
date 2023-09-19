@@ -1,9 +1,10 @@
-package model
+package config
 
 import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
@@ -34,9 +35,9 @@ func (s *ReporterAppSetting) Load(config backend.AppInstanceSettings) error {
 		}
 	}
 
-	s.GrafanaBaseURL = "https://cloud.webitel.ua/grafana"
-	s.BasicAuth.Username = "srvadm"
-	s.BasicAuth.Password = "whogAQgABPkt3wzQ"
+	s.GrafanaBaseURL = "http://localhost:3000"
+	s.BasicAuth.Username = "admin"
+	s.BasicAuth.Password = "admin"
 	s.WorkersCount = 10
 	s.TemporaryDirectory = "/opt/reporter/tmp"
 	s.Browser.Url = "chrome"

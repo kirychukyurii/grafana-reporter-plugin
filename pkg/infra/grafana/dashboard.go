@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/dto"
 	"net/url"
 )
 
@@ -32,7 +32,7 @@ type Dashboard struct {
 }
 
 // Dashboard get and create Dashboard struct from Grafana internal JSON dashboard definition
-func (c *Client) Dashboard(ctx context.Context, opts model.DashboardOpts) (*Dashboard, error) {
+func (c *Client) Dashboard(ctx context.Context, opts dto.DashboardOpts) (*Dashboard, error) {
 	var dashboard Dashboard
 
 	dashboardUrl := fmt.Sprintf("%s/api/dashboards/uid/%s", c.Setting.GrafanaBaseURL, opts.DashboardID)

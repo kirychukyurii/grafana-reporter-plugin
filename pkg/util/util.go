@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"fmt"
@@ -6,6 +6,14 @@ import (
 	"runtime"
 	"time"
 )
+
+func Workers(workers, jobs int) int {
+	if workers > jobs {
+		workers = jobs
+	}
+
+	return workers
+}
 
 func TimeTrack(start time.Time) string {
 	elapsed := time.Since(start)

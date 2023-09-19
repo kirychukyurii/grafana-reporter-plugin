@@ -1,9 +1,10 @@
-package utils
+package util
 
 import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -64,4 +65,13 @@ func EnsureDirRW(dataDir string) error {
 	}
 
 	return nil
+}
+
+func TemporaryDir(dir string) (string, error) {
+	tmpDir := filepath.Join(dir, NewUUID().String())
+	if err := EnsureDirRW(tmpDir); err != nil {
+		return "", fmt.Errorf("ensure dir RW: %v", err)
+	}
+
+	return tmpDir, nil
 }

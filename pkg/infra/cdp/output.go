@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/utils"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/util"
 )
 
 // OutputFile auto creates file if not exists, it will try to detect the data type and
@@ -19,7 +21,10 @@ func OutputFile(p string, data interface{}) error {
 		err error
 	)
 
-	if err = utils.EnsureDir(filepath.Dir(p)); err != nil {
+	since := time.Now()
+	defer func() { backend.Logger.Debug(util.TimeTrack(since)) }()
+
+	if err = util.EnsureDir(filepath.Dir(p)); err != nil {
 		return fmt.Errorf("ensure dir: %v", err)
 	}
 
@@ -29,8 +34,8 @@ func OutputFile(p string, data interface{}) error {
 	case string:
 		bin = []byte(t)
 	case io.Reader:
-		f, _ := utils.OpenFile(p, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o664)
-		_, err = utils.CopyReader(f, t)
+		f, _ := util.OpenFile(p, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o664)
+		_, err = util.CopyReader(f, t)
 
 		return err
 	default:
@@ -40,7 +45,7 @@ func OutputFile(p string, data interface{}) error {
 		}
 	}
 
-	return utils.WriteFile(p, bin, 0o664)
+	return util.WriteFile(p, bin, 0o664)
 }
 
 // MustToJSONBytes encode data to json bytes

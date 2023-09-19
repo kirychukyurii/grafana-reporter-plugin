@@ -36,3 +36,4 @@ e2e-results/
 
 .config/database.db
 .config/tmp
+.config/chrome-user-data

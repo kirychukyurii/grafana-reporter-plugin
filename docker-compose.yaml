@@ -19,10 +19,10 @@ services:
     networks:
       - grafana-network
     volumes:
-      - ./dist:/var/lib/grafana/plugins/grafana-reporter-plugin
-      - ./.config/database.db:/opt/reporter/database.db
-      - ./provisioning:/etc/grafana/provisioning
-      - ./.config/tmp:/opt/reporter/tmp
+      - "./dist:/var/lib/grafana/plugins/grafana-reporter-plugin"
+      - "./.config/database.db:/opt/reporter/database.db"
+      - "./provisioning:/etc/grafana/provisioning"
+      - "./.config/tmp:/opt/reporter/tmp"
 
   chrome:
     container_name: "headless-chrome"
@@ -33,7 +33,10 @@ services:
       - "--no-sandbox"
       - "--remote-debugging-port=9222"
       - "--remote-debugging-address=0.0.0.0"
+      - "--user-data-dir=/opt/rod/user-data"
     ports:
       - "9222:9222/tcp"
     networks:
       - grafana-network
+    volumes:
+      - "./.config/chrome-user-data:/opt/rod/user-data"

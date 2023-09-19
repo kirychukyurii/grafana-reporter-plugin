@@ -2,13 +2,10 @@ package cdp
 
 import (
 	"fmt"
-	"github.com/go-rod/rod/lib/proto"
-	"net"
-
 	"github.com/go-rod/rod"
-	"github.com/go-rod/rod/lib/launcher"
-
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
+	"github.com/go-rod/rod/lib/proto"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/dto"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
 )
 
 type BrowserManager interface {
@@ -27,23 +24,13 @@ type PageTarget struct {
 	URL string
 }
 
-func NewBrowser(settings model.ReporterAppSetting) (*Browser, error) {
+func NewBrowser(settings dto.ReporterAppSetting) (*Browser, error) {
 	var launch string
 
-	if settings.Browser.Url != "" {
-		ips, err := net.LookupIP(settings.Browser.Url)
-		if err != nil {
-			return nil, fmt.Errorf("net.LookupIP: %v", err)
-		}
-
-		launch, err = launcher.ResolveURL(fmt.Sprintf("%s:9222", ips[0]))
-		if err != nil {
-			return nil, fmt.Errorf("launcher.ResolveURL: %v", err)
-		}
-	}
+	browser := rod.New().ControlURL(launch).Logger(log.New()).Trace(true)
 
 	return &Browser{
-		Browser: rod.New().ControlURL(launch),
+		Browser: browser,
 	}, nil
 }
 

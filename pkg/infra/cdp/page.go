@@ -2,6 +2,8 @@ package cdp
 
 import (
 	"fmt"
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/util"
 	"time"
 
 	"github.com/go-rod/rod"
@@ -41,6 +43,7 @@ func NewPage(b BrowserManager) (*Page, error) {
 }
 
 func (p *Page) Prepare(url string, headers []string, viewport *PageViewportOpts) error {
+	p.Page.StopLoading()
 	if viewport != nil {
 		if err := p.Page.SetViewport(&proto.EmulationSetDeviceMetricsOverride{Width: viewport.Width, Height: viewport.Height}); err != nil {
 			return fmt.Errorf("set viewport: %v", err)
@@ -62,7 +65,7 @@ func (p *Page) Prepare(url string, headers []string, viewport *PageViewportOpts)
 		return fmt.Errorf("wait load: %v", err)
 	}
 
-	w := p.Page.MustWaitRequestIdle()
+	w := p.Page.WaitRequestIdle(200*time.Millisecond, nil, []string{}, nil)
 	w()
 
 	return nil
@@ -142,6 +145,9 @@ func (p *Page) Elements(selector string) (rod.Elements, error) {
 }
 
 func (p *Page) Screenshot(file string, full bool) error {
+	since := time.Now()
+	defer func() { backend.Logger.Debug(util.TimeTrack(since)) }()
+
 	bin, err := p.Page.Screenshot(full, nil)
 	if err != nil {
 		return fmt.Errorf("screenshot: %v", err)

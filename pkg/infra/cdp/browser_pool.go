@@ -1,11 +1,11 @@
 package cdp
 
 import (
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/dto"
 )
 
 type BrowserPoolManager interface {
-	Get(settings model.ReporterAppSetting) (*Browser, error)
+	Get(settings dto.ReporterAppSetting) (*Browser, error)
 	Put(b BrowserManager)
 	Cleanup() error
 }
@@ -23,7 +23,7 @@ func NewBrowserPool(limit int) *BrowserPool {
 	return &BrowserPool{Pool: bp}
 }
 
-func (p *BrowserPool) Get(settings model.ReporterAppSetting) (*Browser, error) {
+func (p *BrowserPool) Get(settings dto.ReporterAppSetting) (*Browser, error) {
 	var err error
 
 	b := <-p.Pool

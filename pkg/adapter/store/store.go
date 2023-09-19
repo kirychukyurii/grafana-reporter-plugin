@@ -1,12 +1,12 @@
 package store
 
-type DatabaseAdapter interface {
-	Reporter
-	ReportScheduler
+type Adapter interface {
+	ReportStore
+	ReportScheduleStore
 }
 
-type databaseAdapter struct{}
+type adapter struct{}
 
-func New() DatabaseAdapter {
-	return &databaseAdapter{}
+func New() Adapter {
+	return &adapter{}
 }

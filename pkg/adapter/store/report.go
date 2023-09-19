@@ -2,11 +2,13 @@ package store
 
 import (
 	"context"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
 
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model/dto"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/dto"
 )
 
-type Reporter interface {
+type ReportStoreManager interface {
 	Report(ctx context.Context, id int) (*dto.Result, error)
 	Reports(ctx context.Context, query string) (*dto.Result, error)
 	NewReport(ctx context.Context, report dto.Report) (*dto.Result, error)
@@ -14,22 +16,34 @@ type Reporter interface {
 	DeleteReport(ctx context.Context, id int) (*dto.Result, error)
 }
 
-func (a *databaseAdapter) Report(ctx context.Context, id int) (*dto.Result, error) {
+type ReportStore struct {
+	db     db.DB
+	logger log.Logger
+}
+
+func NewReportStore(db db.DB, logger log.Logger) ReportStore {
+	return ReportStore{
+		db:     db,
+		logger: logger,
+	}
+}
+
+func (s *ReportStore) Report(ctx context.Context, id int) (*dto.Result, error) {
 	return nil, nil
 }
 
-func (a *databaseAdapter) Reports(ctx context.Context, query string) (*dto.Result, error) {
+func (s *ReportStore) Reports(ctx context.Context, query string) (*dto.Result, error) {
 	return nil, nil
 }
 
-func (a *databaseAdapter) NewReport(ctx context.Context, report dto.Report) (*dto.Result, error) {
+func (s *ReportStore) NewReport(ctx context.Context, report dto.Report) (*dto.Result, error) {
 	return nil, nil
 }
 
-func (a *databaseAdapter) UpdateReport(ctx context.Context, id int, report dto.Report) (*dto.Result, error) {
+func (s *ReportStore) UpdateReport(ctx context.Context, id int, report dto.Report) (*dto.Result, error) {
 	return nil, nil
 }
 
-func (a *databaseAdapter) DeleteReport(ctx context.Context, id int) (*dto.Result, error) {
+func (s *ReportStore) DeleteReport(ctx context.Context, id int) (*dto.Result, error) {
 	return nil, nil
 }

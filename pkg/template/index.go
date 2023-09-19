@@ -1,4 +1,4 @@
-package templates
+package template
 
 var Index = `
 {{ $tmpDir := .TmpDir }}

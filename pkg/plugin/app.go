@@ -3,6 +3,7 @@ package plugin
 import (
 	"context"
 	"fmt"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 	"net/http"
 	"time"
 
@@ -12,14 +13,13 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/service"
+	handler "github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/http"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/migration"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/model"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/service"
 )
 
 // Make sure App implements required interfaces.
@@ -32,14 +32,14 @@ var (
 )
 
 type App struct {
-	settings model.ReporterAppSetting
+	settings config.ReporterAppSetting
 	router   *mux.Router
-	handler  handler.Handler
+	handler  handler.HandlerManager
 }
 
 // New creates a new *App instance.
 func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
-	settings := model.ReporterAppSetting{}
+	settings := config.ReporterAppSetting{}
 	if err := settings.Load(s); err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 	return newApp(settings)
 }
 
-func newApp(settings model.ReporterAppSetting) (*App, error) {
+func newApp(settings config.ReporterAppSetting) (*App, error) {
 	database, err := db.New()
 	if err != nil {
 		return nil, fmt.Errorf("database: %v", err)
