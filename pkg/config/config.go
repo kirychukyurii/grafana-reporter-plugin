@@ -28,25 +28,23 @@ type BasicAuth struct {
 	Password string
 }
 
-func (s *ReporterAppSetting) Load(config backend.AppInstanceSettings) error {
+func New(config backend.AppInstanceSettings) (*ReporterAppSetting, error) {
+	var setting ReporterAppSetting
+
 	if config.JSONData != nil && len(config.JSONData) > 1 {
-		if err := json.Unmarshal(config.JSONData, s); err != nil {
-			return fmt.Errorf("could not unmarshal AppInstanceSettings json: %w", err)
+		if err := json.Unmarshal(config.JSONData, &setting); err != nil {
+			return nil, fmt.Errorf("could not unmarshal AppInstanceSettings json: %w", err)
 		}
 	}
 
-	s.GrafanaBaseURL = "http://localhost:3000"
-	s.BasicAuth.Username = "admin"
-	s.BasicAuth.Password = "admin"
-	s.WorkersCount = 10
-	s.TemporaryDirectory = "/opt/reporter/tmp"
-	s.Browser.Url = "chrome"
+	setting.GrafanaBaseURL = "http://localhost:3000"
+	setting.BasicAuth.Username = "admin"
+	setting.BasicAuth.Password = "admin"
+	setting.WorkersCount = 10
+	setting.TemporaryDirectory = "/opt/reporter/tmp"
+	setting.Browser.Url = "chrome"
 
-	return nil
-}
-
-func (s *ReporterAppSetting) Validate() error {
-	return nil
+	return &setting, nil
 }
 
 func (a *BasicAuth) String() string {

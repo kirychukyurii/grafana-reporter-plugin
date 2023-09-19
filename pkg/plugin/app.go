@@ -3,7 +3,6 @@ package plugin
 import (
 	"context"
 	"fmt"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 	"net/http"
 	"time"
 
@@ -12,14 +11,14 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/service"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 	handler "github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/http"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/migration"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/migration"
 )
 
 // Make sure App implements required interfaces.
@@ -32,50 +31,49 @@ var (
 )
 
 type App struct {
-	settings config.ReporterAppSetting
+	settings *config.ReporterAppSetting
 	router   *mux.Router
-	handler  handler.HandlerManager
+	handler  handler.ReportHandler
 }
 
 // New creates a new *App instance.
 func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
-	settings := config.ReporterAppSetting{}
-	if err := settings.Load(s); err != nil {
+	setting, err := config.New(s)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := settings.Validate(); err != nil {
-		return nil, err
-	}
-
-	return newApp(settings)
-}
-
-func newApp(settings config.ReporterAppSetting) (*App, error) {
+	logger := log.New()
 	database, err := db.New()
 	if err != nil {
-		return nil, fmt.Errorf("database: %v", err)
+		return nil, err
 	}
 
 	if err = migration.Migrate(database); err != nil {
-
 		return nil, fmt.Errorf("migrate: %v", err)
 	}
 
-	browserPool := cdp.NewBrowserPool(2)
-	gclient, _ := grafana.New(settings)
-	s := store.New()
-	svc := service.New(settings, s, gclient, browserPool)
-	router := mux.NewRouter()
-	app := &App{
-		settings: settings,
-		router:   router,
-		handler:  handler.New(svc),
+	pool := cdp.NewBrowserPool(setting)
+	grafanaClient, err := grafana.New(setting)
+	if err != nil {
+		return nil, err
+	}
+
+	app, err := Initialize(setting, database, logger, grafanaClient, pool)
+	if err != nil {
+		return nil, err
 	}
 
 	app.registerRoutes()
-
 	return app, nil
+}
+
+func newApp(setting *config.ReporterAppSetting, handler handler.ReportHandler) (*App, error) {
+	return &App{
+		settings: setting,
+		router:   mux.NewRouter(),
+		handler:  handler,
+	}, nil
 }
 
 func runScheduler() error {

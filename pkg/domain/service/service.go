@@ -1,15 +1,6 @@
 package service
 
-type ServiceManager interface {
-	*ReportService
-	*ReportScheduleService
-}
+import "github.com/google/wire"
 
-type Service struct {
-	report         Report
-	reportSchedule ReportSchedule
-}
-
-func New(report ReportService, reportSchedule ReportScheduleService) *Service {
-	return &Service{}
-}
+// ProviderSet is service providers.
+var ProviderSet = wire.NewSet(NewReportService, NewReportScheduleService)

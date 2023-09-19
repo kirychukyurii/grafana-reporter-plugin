@@ -1,11 +1,11 @@
 package cdp
 
 import (
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/dto"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 )
 
 type BrowserPoolManager interface {
-	Get(settings dto.ReporterAppSetting) (*Browser, error)
+	Get(settings *config.ReporterAppSetting) (*Browser, error)
 	Put(b BrowserManager)
 	Cleanup() error
 }
@@ -14,16 +14,16 @@ type BrowserPool struct {
 	Pool chan BrowserManager
 }
 
-func NewBrowserPool(limit int) *BrowserPool {
-	bp := make(chan BrowserManager, limit)
-	for i := 0; i < limit; i++ {
+func NewBrowserPool(setting *config.ReporterAppSetting) *BrowserPool {
+	bp := make(chan BrowserManager, setting.WorkersCount)
+	for i := 0; i < setting.WorkersCount; i++ {
 		bp <- nil
 	}
 
 	return &BrowserPool{Pool: bp}
 }
 
-func (p *BrowserPool) Get(settings dto.ReporterAppSetting) (*Browser, error) {
+func (p *BrowserPool) Get(settings *config.ReporterAppSetting) (*Browser, error) {
 	var err error
 
 	b := <-p.Pool

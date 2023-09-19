@@ -4,7 +4,7 @@ import "net/http"
 
 type ReportSchedule struct{}
 
-func NewReportSchedule() *ReportSchedule {
+func NewReportScheduleHandler() *ReportSchedule {
 	return &ReportSchedule{}
 }
 

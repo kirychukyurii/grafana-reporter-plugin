@@ -25,7 +25,7 @@ type ReportService interface {
 }
 
 type Report struct {
-	settings config.ReporterAppSetting
+	settings *config.ReporterAppSetting
 
 	store             store.ReportStoreManager
 	grafanaHTTPClient grafana.GrafanaHTTPAdapter
@@ -36,7 +36,7 @@ type Report struct {
 	page        cdp.PageManager
 }
 
-func NewReportService(settings config.ReporterAppSetting,
+func NewReportService(settings *config.ReporterAppSetting,
 	reportStore store.ReportStoreManager,
 	grafanaHTTPClient grafana.GrafanaHTTPAdapter,
 	browserPool cdp.BrowserPoolManager) *Report {

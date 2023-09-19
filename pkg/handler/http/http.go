@@ -3,8 +3,12 @@ package http
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/wire"
 	"net/http"
 )
+
+// ProviderSet is handler providers.
+var ProviderSet = wire.NewSet(NewReportHandler, NewReportScheduleHandler)
 
 type HandlerManager interface {
 	Ping(w http.ResponseWriter, req *http.Request)

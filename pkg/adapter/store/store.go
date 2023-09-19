@@ -1,12 +1,6 @@
 package store
 
-type Adapter interface {
-	ReportStore
-	ReportScheduleStore
-}
+import "github.com/google/wire"
 
-type adapter struct{}
-
-func New() Adapter {
-	return &adapter{}
-}
+// ProviderSet is store provider.
+var ProviderSet = wire.NewSet(NewReportStore)

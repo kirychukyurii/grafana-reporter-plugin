@@ -2,9 +2,11 @@ package cdp
 
 import (
 	"fmt"
+
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/dto"
+
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
 )
 
@@ -24,7 +26,7 @@ type PageTarget struct {
 	URL string
 }
 
-func NewBrowser(settings dto.ReporterAppSetting) (*Browser, error) {
+func NewBrowser(settings *config.ReporterAppSetting) (*Browser, error) {
 	var launch string
 
 	browser := rod.New().ControlURL(launch).Logger(log.New()).Trace(true)
