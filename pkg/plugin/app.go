@@ -16,9 +16,9 @@ import (
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db/migration"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/migration"
 )
 
 // Make sure App implements required interfaces.
