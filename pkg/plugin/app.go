@@ -3,6 +3,7 @@ package plugin
 import (
 	"context"
 	"fmt"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/boltdb"
 	"net/http"
 	"time"
 
@@ -15,10 +16,10 @@ import (
 	handler "github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/http"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db/migration"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
+	db "github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/sqlite"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/sqlite/migration"
 )
 
 // Make sure App implements required interfaces.
@@ -31,7 +32,7 @@ var (
 )
 
 type App struct {
-	settings *config.ReporterAppSetting
+	settings *config.ReporterAppConfig
 	router   *mux.Router
 	handler  handler.ReportHandler
 }
@@ -44,6 +45,11 @@ func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 	}
 
 	logger := log.New()
+	_, err = boltdb.New(setting, logger)
+	if err != nil {
+		return nil, err
+	}
+
 	database, err := db.New()
 	if err != nil {
 		return nil, err
@@ -68,7 +74,7 @@ func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 	return app, nil
 }
 
-func newApp(setting *config.ReporterAppSetting, handler handler.ReportHandler) (*App, error) {
+func newApp(setting *config.ReporterAppConfig, handler handler.ReportHandler) (*App, error) {
 	return &App{
 		settings: setting,
 		router:   mux.NewRouter(),

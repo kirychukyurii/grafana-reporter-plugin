@@ -14,14 +14,14 @@ import (
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/service"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/http"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/sqlite"
 )
 
 // Injectors from wire.go:
 
-func Initialize(reporterAppSetting *config.ReporterAppSetting, dbDB *db.DB, logger *log.Logger, grafanaHTTPAdapter grafana.GrafanaHTTPAdapter, browserPoolManager cdp.BrowserPoolManager) (*App, error) {
-	reportStore := store.NewReportStore(dbDB, logger)
+func Initialize(reporterAppSetting *config.ReporterAppSetting, db *sqlite.DB, logger *log.Logger, grafanaHTTPAdapter grafana.GrafanaHTTPAdapter, browserPoolManager cdp.BrowserPoolManager) (*App, error) {
+	reportStore := store.NewReportStore(db, logger)
 	report := service.NewReportService(reporterAppSetting, reportStore, grafanaHTTPAdapter, browserPoolManager)
 	httpReport := http.NewReportHandler(report)
 	app, err := newApp(reporterAppSetting, httpReport)

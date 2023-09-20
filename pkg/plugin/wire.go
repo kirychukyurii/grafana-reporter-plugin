@@ -12,8 +12,8 @@ import (
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/service"
 	httphandler "github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/http"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
+	db "github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/sqlite"
 )
 
 var wireBasicSet = wire.NewSet(
