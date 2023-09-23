@@ -12,7 +12,7 @@ require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/json-iterator/go v1.1.12
 	github.com/pressly/goose/v3 v3.15.0
-	github.com/valyala/fasthttp v1.49.0
+	github.com/valyala/fasthttp v1.50.0
 	go.etcd.io/bbolt v1.3.7
 	golang.org/x/sync v0.3.0
 	modernc.org/sqlite v1.25.0
