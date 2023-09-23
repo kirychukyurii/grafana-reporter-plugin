@@ -11,11 +11,11 @@ import (
 
 // Client is a Grafana API client.
 type Client struct {
-	Setting *config.ReporterAppSetting
+	Setting *config.ReporterAppConfig
 	HTTP    *fasthttp.Client
 }
 
-func New(setting *config.ReporterAppSetting) (*Client, error) {
+func New(setting *config.ReporterAppConfig) (*Client, error) {
 	cli := fasthttp.Client{
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: setting.InsecureSkipVerify,
@@ -46,7 +46,7 @@ func (c *Client) Request(ctx context.Context, requestMethod, requestUrl string, 
 		}
 	}
 
-	if auth := c.Setting.BasicAuth.String(); auth != "" {
+	if auth := c.Setting.GrafanaConfig.BasicAuth(); auth != "" {
 		req.Header.Add("Authorization", auth)
 	}
 

@@ -5,7 +5,7 @@ import (
 )
 
 type BrowserPoolManager interface {
-	Get(settings *config.ReporterAppSetting) (*Browser, error)
+	Get(settings *config.ReporterAppConfig) (*Browser, error)
 	Put(b BrowserManager)
 	Cleanup() error
 }
@@ -14,7 +14,7 @@ type BrowserPool struct {
 	Pool chan BrowserManager
 }
 
-func NewBrowserPool(setting *config.ReporterAppSetting) *BrowserPool {
+func NewBrowserPool(setting *config.ReporterAppConfig) *BrowserPool {
 	bp := make(chan BrowserManager, setting.WorkersCount)
 	for i := 0; i < setting.WorkersCount; i++ {
 		bp <- nil
@@ -23,7 +23,7 @@ func NewBrowserPool(setting *config.ReporterAppSetting) *BrowserPool {
 	return &BrowserPool{Pool: bp}
 }
 
-func (p *BrowserPool) Get(settings *config.ReporterAppSetting) (*Browser, error) {
+func (p *BrowserPool) Get(settings *config.ReporterAppConfig) (*Browser, error) {
 	var err error
 
 	b := <-p.Pool

@@ -8,7 +8,7 @@ import (
 )
 
 // ProviderSet is handler providers.
-var ProviderSet = wire.NewSet(NewReportHandler, NewReportScheduleHandler)
+var ProviderSet = wire.NewSet(New, NewReportHandler, NewReportScheduleHandler)
 
 type HandlerManager interface {
 	Ping(w http.ResponseWriter, req *http.Request)
@@ -28,20 +28,21 @@ type ReportHandler interface {
 
 type ReportScheduleHandler interface {
 	ReportSchedule(w http.ResponseWriter, req *http.Request)
+	ReportSchedules(w http.ResponseWriter, req *http.Request)
 	NewReportSchedule(w http.ResponseWriter, req *http.Request)
 	UpdateReportSchedule(w http.ResponseWriter, req *http.Request)
 	DeleteReportSchedule(w http.ResponseWriter, req *http.Request)
 }
 
 type Handler struct {
-	*Report
-	*ReportSchedule
+	ReportHandler
+	ReportScheduleHandler
 }
 
 func New(reportHandler ReportHandler, reportScheduleHandler ReportScheduleHandler) *Handler {
 	return &Handler{
-		Report:         reportHandler.(*Report),
-		ReportSchedule: reportScheduleHandler.(*ReportSchedule),
+		ReportHandler:         reportHandler,
+		ReportScheduleHandler: reportScheduleHandler,
 	}
 }
 

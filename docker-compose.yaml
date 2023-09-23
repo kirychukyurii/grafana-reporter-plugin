@@ -11,18 +11,18 @@ services:
       context: ./.config
       args:
         grafana_image: ${GRAFANA_IMAGE:-grafana-enterprise}
-        grafana_version: ${GRAFANA_VERSION:-9.5.3}
+        grafana_version: ${GRAFANA_VERSION:-latest}
     environment:
-      - GF_LOG_LEVEL=debug
+      - "GF_PATHS_CONFIG=/etc/grafana/grafana.ini"
     ports:
       - "3000:3000/tcp"
     networks:
-      - grafana-network
+      - "grafana-network"
     volumes:
       - "./dist:/var/lib/grafana/plugins/grafana-reporter-plugin"
-      - "./.config/database.db:/opt/reporter/database.db"
       - "./provisioning:/etc/grafana/provisioning"
-      - "./.config/tmp:/opt/reporter/tmp"
+      - "./.config/grafana.ini:/etc/grafana/grafana.ini"
+      - "./.config/tmp:/opt/reporter"
 
   chrome:
     container_name: "headless-chrome"
@@ -37,6 +37,6 @@ services:
     ports:
       - "9222:9222/tcp"
     networks:
-      - grafana-network
+      - "grafana-network"
     volumes:
       - "./.config/chrome-user-data:/opt/rod/user-data"

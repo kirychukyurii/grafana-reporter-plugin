@@ -15,16 +15,19 @@ import (
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/http"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/sqlite"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/boltdb"
 )
 
 // Injectors from wire.go:
 
-func Initialize(reporterAppSetting *config.ReporterAppSetting, db *sqlite.DB, logger *log.Logger, grafanaHTTPAdapter grafana.GrafanaHTTPAdapter, browserPoolManager cdp.BrowserPoolManager) (*App, error) {
-	reportStore := store.NewReportStore(db, logger)
-	report := service.NewReportService(reporterAppSetting, reportStore, grafanaHTTPAdapter, browserPoolManager)
+func Initialize(reporterAppConfig *config.ReporterAppConfig, databaseManager boltdb.DatabaseManager, logger *log.Logger, grafanaHTTPAdapter grafana.GrafanaHTTPAdapter, browserPoolManager cdp.BrowserPoolManager) (*App, error) {
+	report := service.NewReportService(reporterAppConfig, grafanaHTTPAdapter, browserPoolManager)
 	httpReport := http.NewReportHandler(report)
-	app, err := newApp(reporterAppSetting, httpReport)
+	reportScheduleStore := store.NewReportScheduleStore(databaseManager, logger)
+	reportSchedule := service.NewReportScheduleService(reporterAppConfig, reportScheduleStore)
+	httpReportSchedule := http.NewReportScheduleHandler(reportSchedule)
+	handler := http.New(httpReport, httpReportSchedule)
+	app, err := newApp(reporterAppConfig, handler)
 	if err != nil {
 		return nil, err
 	}
@@ -33,4 +36,4 @@ func Initialize(reporterAppSetting *config.ReporterAppSetting, db *sqlite.DB, lo
 
 // wire.go:
 
-var wireBasicSet = wire.NewSet(store.ProviderSet, wire.Bind(new(store.ReportStoreManager), new(*store.ReportStore)), service.ProviderSet, wire.Bind(new(service.ReportService), new(*service.Report)), http.ProviderSet, wire.Bind(new(http.ReportHandler), new(*http.Report)))
+var wireBasicSet = wire.NewSet(store.ProviderSet, wire.Bind(new(store.ReportScheduleStoreManager), new(*store.ReportScheduleStore)), service.ProviderSet, wire.Bind(new(service.ReportService), new(*service.Report)), wire.Bind(new(service.ReportScheduleService), new(*service.ReportSchedule)), http.ProviderSet, wire.Bind(new(http.ReportHandler), new(*http.Report)), wire.Bind(new(http.ReportScheduleHandler), new(*http.ReportSchedule)), wire.Bind(new(http.HandlerManager), new(*http.Handler)))

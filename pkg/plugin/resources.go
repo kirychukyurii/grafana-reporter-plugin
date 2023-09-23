@@ -12,5 +12,9 @@ func (a *App) registerRoutes() {
 	a.router.HandleFunc("/reports/{id:[0-9]+}", a.handler.UpdateReport).Methods(http.MethodPatch, http.MethodPut)
 	a.router.HandleFunc("/reports/{id:[0-9]+}", a.handler.DeleteReport).Methods(http.MethodDelete)
 
-	//a.router.HandleFunc("/report/schedules", a.handler.ReportSchedule).Methods(http.MethodGet)
+	a.router.HandleFunc("/report/schedules/{id:[0-9]+}", a.handler.ReportSchedule).Methods(http.MethodGet)
+	a.router.HandleFunc("/report/schedules", a.handler.ReportSchedules).Methods(http.MethodGet)
+	a.router.HandleFunc("/report/schedules", a.handler.NewReportSchedule).Methods(http.MethodPost)
+	a.router.HandleFunc("/report/schedules/{id:[0-9]+}", a.handler.UpdateReportSchedule).Methods(http.MethodPatch, http.MethodPut)
+	a.router.HandleFunc("/report/schedules/{id:[0-9]+}", a.handler.DeleteReportSchedule).Methods(http.MethodDelete)
 }

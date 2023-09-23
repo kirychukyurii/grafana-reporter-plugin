@@ -2,7 +2,6 @@ package plugin
 
 import (
 	"context"
-	"fmt"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/boltdb"
 	"net/http"
 	"time"
@@ -18,8 +17,6 @@ import (
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
-	db "github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/sqlite"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/sqlite/migration"
 )
 
 // Make sure App implements required interfaces.
@@ -34,7 +31,7 @@ var (
 type App struct {
 	settings *config.ReporterAppConfig
 	router   *mux.Router
-	handler  handler.ReportHandler
+	handler  handler.HandlerManager
 }
 
 // New creates a new *App instance.
@@ -45,18 +42,10 @@ func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 	}
 
 	logger := log.New()
-	_, err = boltdb.New(setting, logger)
+
+	database, err := boltdb.New(setting, logger)
 	if err != nil {
 		return nil, err
-	}
-
-	database, err := db.New()
-	if err != nil {
-		return nil, err
-	}
-
-	if err = migration.Migrate(database); err != nil {
-		return nil, fmt.Errorf("migrate: %v", err)
 	}
 
 	pool := cdp.NewBrowserPool(setting)
@@ -74,7 +63,7 @@ func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 	return app, nil
 }
 
-func newApp(setting *config.ReporterAppConfig, handler handler.ReportHandler) (*App, error) {
+func newApp(setting *config.ReporterAppConfig, handler handler.HandlerManager) (*App, error) {
 	return &App{
 		settings: setting,
 		router:   mux.NewRouter(),

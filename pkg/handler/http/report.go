@@ -2,9 +2,10 @@ package http
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/entity"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/service"
-	"net/http"
 )
 
 type Report struct {
@@ -28,16 +29,16 @@ func (r *Report) NewReport(w http.ResponseWriter, req *http.Request) {
 	var report entity.Report
 
 	if err := json.NewDecoder(req.Body).Decode(&report); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		Response{Code: http.StatusBadRequest, Error: err}.JSON(w)
 		return
 	}
 
 	if err := r.service.NewReport(req.Context(), report); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		Response{Error: err}.JSON(w)
 		return
 	}
 
-	return
+	Response{Code: http.StatusOK}.JSON(w)
 }
 
 func (r *Report) UpdateReport(w http.ResponseWriter, req *http.Request) {}

@@ -4,49 +4,59 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/ilyakaznacheev/cleanenv"
+	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
-type ReporterAppSetting struct {
-	GrafanaBaseURL     string
-	BasicAuth          BasicAuth
-	InsecureSkipVerify bool
+type ReporterAppConfig struct {
+	WorkersCount  int    `json:"workers_count,omitempty" env:"GF_PLUGIN_WORKERS_COUNT"`
+	DataDirectory string `json:"data_directory,omitempty" env:"GF_PLUGIN_DATA_DIRECTORY"`
 
-	TemporaryDirectory string
-	WorkersCount       int
-	Browser            BrowserSettings
+	GrafanaConfig
+	DatabaseConfig
+	BrowserConfig
 }
 
-type BrowserSettings struct {
-	BinPath string
-	Url     string
+type GrafanaConfig struct {
+	URL                string `json:"grafana_url,omitempty" env:"GF_PLUGIN_GRAFANA_URL"`
+	InsecureSkipVerify bool   `json:"grafana_insecure_skip_verify,omitempty" env:"GF_PLUGIN_GRAFANA_INSECURE_SKIP_VERIFY"`
+
+	APIToken string `json:"grafana_api_token,omitempty" env:"GF_PLUGIN_GRAFANA_API_TOKEN"`
+	Username string `json:"grafana_username,omitempty" env:"GF_PLUGIN_GRAFANA_USERNAME"`
+	Password string `json:"grafana_password,omitempty" env:"GF_PLUGIN_GRAFANA_PASSWORD"`
 }
 
-type BasicAuth struct {
-	Username string
-	Password string
+type DatabaseConfig struct {
+	MaxBatchSize    int           `json:"database_max_batch_size,omitempty" env:"GF_PLUGIN_DATABASE_MAX_BATCH_SIZE"`
+	MaxBatchDelay   time.Duration `json:"database_max_batch_delay,omitempty" env:"GF_PLUGIN_DATABASE_MAX_BATCH_DELAY"`
+	InitialMmapSize int           `json:"database_initial_mmap_size,omitempty" env:"GF_PLUGIN_DATABASE_INITIAL_MMAP_SIZE"`
+	EncryptionKey   []byte        `json:"database_encryption_key,omitempty" env:"GF_PLUGIN_DATABASE_ENCRYPTION_KEY"`
 }
 
-func New(config backend.AppInstanceSettings) (*ReporterAppSetting, error) {
-	var setting ReporterAppSetting
+type BrowserConfig struct {
+	Type    string `json:"browser_type,omitempty" env:"GF_PLUGIN_BROWSER_TYPE"`
+	BinPath string `json:"browser_bin_path,omitempty" env:"GF_PLUGIN_BROWSER_BIN_PATH"`
+	URL     string `json:"browser_url,omitempty" env:"GF_PLUGIN_BROWSER_URL"`
+}
 
-	if config.JSONData != nil && len(config.JSONData) > 1 {
-		if err := json.Unmarshal(config.JSONData, &setting); err != nil {
+func New(settings backend.AppInstanceSettings) (*ReporterAppConfig, error) {
+	var config ReporterAppConfig
+
+	if settings.JSONData != nil && len(settings.JSONData) > 1 {
+		if err := json.Unmarshal(settings.JSONData, &config); err != nil {
 			return nil, fmt.Errorf("could not unmarshal AppInstanceSettings json: %w", err)
 		}
 	}
 
-	setting.GrafanaBaseURL = "http://localhost:3000"
-	setting.BasicAuth.Username = "admin"
-	setting.BasicAuth.Password = "admin"
-	setting.WorkersCount = 10
-	setting.TemporaryDirectory = "/opt/reporter/tmp"
-	setting.Browser.Url = "chrome"
+	if err := cleanenv.ReadEnv(&config); err != nil {
+		return nil, fmt.Errorf("read env: %v", err)
+	}
 
-	return &setting, nil
+	return &config, nil
 }
 
-func (a *BasicAuth) String() string {
+func (a *GrafanaConfig) BasicAuth() string {
 	return fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", a.Username, a.Password))))
 }

@@ -26,7 +26,7 @@ type PageTarget struct {
 	URL string
 }
 
-func NewBrowser(settings *config.ReporterAppSetting) (*Browser, error) {
+func NewBrowser(settings *config.ReporterAppConfig) (*Browser, error) {
 	var launch string
 
 	browser := rod.New().ControlURL(launch).Logger(log.New()).Trace(true)

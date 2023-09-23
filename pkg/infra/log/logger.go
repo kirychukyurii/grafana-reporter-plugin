@@ -5,7 +5,7 @@ import (
 )
 
 type Logger struct {
-	Logger log.Logger
+	log.Logger
 }
 
 func New() *Logger {
@@ -15,5 +15,5 @@ func New() *Logger {
 }
 
 func (l *Logger) Println(args ...interface{}) {
-	l.Logger.Debug("headless browser", args...)
+	l.Debug("headless browser", args...)
 }

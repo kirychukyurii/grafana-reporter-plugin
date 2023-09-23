@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/pressly/goose/v3"
 
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/db"
+	db "github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/sqlite"
 )
 
 //go:embed schema/*.sql
