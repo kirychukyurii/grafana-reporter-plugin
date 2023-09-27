@@ -1,28 +1,32 @@
 package cron
 
 import (
-	"context"
 	"fmt"
 	"time"
 
 	"github.com/go-co-op/gocron"
 )
 
+type ScheduleManager interface {
+	ScheduleJob(interval string, jobTag string, jobFun interface{}, params ...interface{}) (*gocron.Job, error)
+	RemoveJob(jobTag string) error
+}
+
 type Scheduler struct {
 	Cron *gocron.Scheduler
 }
 
-func NewScheduler(location *time.Location) Scheduler {
+func NewScheduler(location *time.Location) *Scheduler {
 	scheduler := gocron.NewScheduler(location)
-	// scheduler.SetMaxConcurrentJobs()
+	scheduler.StartAsync()
 
-	return Scheduler{
+	return &Scheduler{
 		Cron: scheduler,
 	}
 }
 
-func (s *Scheduler) ScheduleJob(jobTag string, jobFun interface{}, ctx context.Context, interval string) (*gocron.Job, error) {
-	job, err := s.Cron.Cron(interval).Tag(jobTag).DoWithJobDetails(jobFun, ctx)
+func (s *Scheduler) ScheduleJob(interval string, jobTag string, jobFun interface{}, params ...interface{}) (*gocron.Job, error) {
+	job, err := s.Cron.Cron(interval).Tag(jobTag).DoWithJobDetails(jobFun, params...)
 	if err != nil {
 		return nil, fmt.Errorf("scheduling job: %v", err)
 	}

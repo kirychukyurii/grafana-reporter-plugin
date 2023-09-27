@@ -27,7 +27,15 @@ func (r *ReportSchedule) ReportSchedule(w http.ResponseWriter, req *http.Request
 	Response{Code: http.StatusOK, Data: schedule}.JSON(w)
 }
 
-func (r *ReportSchedule) ReportSchedules(w http.ResponseWriter, req *http.Request) {}
+func (r *ReportSchedule) ReportSchedules(w http.ResponseWriter, req *http.Request) {
+	schedules, err := r.service.ReportSchedules(req.Context(), "")
+	if err != nil {
+		Response{Error: err}.JSON(w)
+		return
+	}
+
+	Response{Code: http.StatusOK, Data: schedules}.JSON(w)
+}
 
 func (r *ReportSchedule) NewReportSchedule(w http.ResponseWriter, req *http.Request) {
 	var schedule entity.ReportSchedule

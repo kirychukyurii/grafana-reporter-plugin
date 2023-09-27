@@ -2,19 +2,19 @@ package plugin
 
 import (
 	"context"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/boltdb"
-	"net/http"
-	"time"
-
 	"github.com/gorilla/mux"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/boltdb"
+	"net/http"
+	"time"
 
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
+	cronhandler "github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/cron"
 	handler "github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/http"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
 )
@@ -32,10 +32,11 @@ type App struct {
 	settings *config.ReporterAppConfig
 	router   *mux.Router
 	handler  handler.HandlerManager
+	cron     cronhandler.ReportScheduleCronHandler
 }
 
 // New creates a new *App instance.
-func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
+func New(ctx context.Context, s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 	setting, err := config.New(s)
 	if err != nil {
 		return nil, err
@@ -54,33 +55,34 @@ func New(s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 		return nil, err
 	}
 
-	app, err := Initialize(setting, database, logger, grafanaClient, pool)
+	timezone, err := time.LoadLocation("Local")
 	if err != nil {
 		return nil, err
 	}
 
+	scheduler := cron.NewScheduler(timezone)
+
+	app, err := Initialize(setting, database, logger, grafanaClient, pool, scheduler)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = app.cron.LoadSchedules(); err != nil {
+		return nil, err
+	}
+
 	app.registerRoutes()
+
 	return app, nil
 }
 
-func newApp(setting *config.ReporterAppConfig, handler handler.HandlerManager) (*App, error) {
+func newApp(setting *config.ReporterAppConfig, handler handler.HandlerManager, cronHandler cronhandler.ReportScheduleCronHandler) (*App, error) {
 	return &App{
 		settings: setting,
 		router:   mux.NewRouter(),
 		handler:  handler,
+		cron:     cronHandler,
 	}, nil
-}
-
-func runScheduler() error {
-	timezone, err := time.LoadLocation("Local")
-	if err != nil {
-		return err
-	}
-
-	scheduler := cron.NewScheduler(timezone)
-	scheduler.Cron.StartAsync()
-
-	return nil
 }
 
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {

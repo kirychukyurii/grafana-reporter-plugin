@@ -2,10 +2,15 @@ package util
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"regexp"
 	"runtime"
 	"time"
 )
+
+func NewUUID() uuid.UUID {
+	return uuid.New()
+}
 
 func Workers(workers, jobs int) int {
 	if workers > jobs {

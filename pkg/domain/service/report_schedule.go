@@ -2,30 +2,37 @@ package service
 
 import (
 	"context"
+	"github.com/go-co-op/gocron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/entity"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
 )
 
 type ReportScheduleService interface {
 	ReportSchedule(ctx context.Context, id int) (*entity.ReportSchedule, error)
 	ReportSchedules(ctx context.Context, query string) (*entity.Result, error)
 	NewReportSchedule(ctx context.Context, report entity.ReportSchedule) error
+	NewReportScheduleJob(ctx context.Context, schedule entity.ReportSchedule) error
 	UpdateReportSchedule(ctx context.Context, id int, report entity.ReportSchedule) error
 	DeleteReportSchedule(ctx context.Context, id int) error
 }
 
 type ReportSchedule struct {
 	settings *config.ReporterAppConfig
+	logger   *log.Logger
+	report   ReportService
 	store    store.ReportScheduleStoreManager
+	schedule cron.ScheduleManager
 }
 
-func NewReportScheduleService(settings *config.ReporterAppConfig,
-	store store.ReportScheduleStoreManager,
-) *ReportSchedule {
+func NewReportScheduleService(settings *config.ReporterAppConfig, logger *log.Logger, store store.ReportScheduleStoreManager, schedule cron.ScheduleManager) *ReportSchedule {
 	return &ReportSchedule{
 		settings: settings,
+		logger:   logger,
 		store:    store,
+		schedule: schedule,
 	}
 }
 
@@ -53,6 +60,33 @@ func (r *ReportSchedule) NewReportSchedule(ctx context.Context, report entity.Re
 		return err
 	}
 
+	if err = r.NewReportScheduleJob(ctx, report); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *ReportSchedule) NewReportScheduleJob(ctx context.Context, schedule entity.ReportSchedule) error {
+	fn := func(job gocron.Job) error {
+		r.logger.Debug("from cronjob")
+
+		/*
+			if err := r.report.NewReport(ctx, schedule.Report); err != nil {
+				return err
+			}
+		*/
+
+		return nil
+	}
+
+	job, err := r.schedule.ScheduleJob(schedule.Interval, "0", fn)
+	if err != nil {
+		return err
+	}
+
+	r.logger.Debug("scheduled job", "job.next_run", job.NextRun())
+
 	return nil
 }
 
@@ -71,5 +105,9 @@ func (r *ReportSchedule) DeleteReportSchedule(ctx context.Context, id int) error
 		return err
 	}
 
+	return nil
+}
+
+func (r *ReportSchedule) RunReportSchedule(ctx context.Context, id int) error {
 	return nil
 }

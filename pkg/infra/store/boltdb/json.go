@@ -27,20 +27,19 @@ func (d *Database) MarshalObject(object interface{}) ([]byte, error) {
 // decoding at the moment.
 func (d *Database) UnmarshalObject(data []byte, object interface{}) error {
 	var (
-		err           error
-		decryptedData []byte
+		err error
 	)
 
 	if d.isEncrypted {
-		decryptedData, err = decrypt(data, d.encryptionKey)
+		data, err = decrypt(data, d.encryptionKey)
 		if err != nil {
 			return fmt.Errorf("decrypt object: %v", err)
 		}
 	}
 
-	if err = json.Unmarshal(decryptedData, &object); err != nil {
+	if err = json.Unmarshal(data, &object); err != nil {
 		if s, ok := object.(*string); ok {
-			*s = string(decryptedData)
+			*s = string(data)
 
 			return nil
 		}

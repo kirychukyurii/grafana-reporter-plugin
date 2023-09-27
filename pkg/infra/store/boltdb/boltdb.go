@@ -75,7 +75,7 @@ func New(cfg *config.ReporterAppConfig, logger *log.Logger) (*Database, error) {
 
 	databasePath := filepath.Join(cfg.DataDirectory, db.DatabaseFileName())
 	database, err := bolt.Open(databasePath, 0600, &bolt.Options{
-		Timeout:         1 * time.Second,
+		Timeout:         10 * time.Second,
 		InitialMmapSize: cfg.DatabaseConfig.InitialMmapSize,
 	})
 	if err != nil {
