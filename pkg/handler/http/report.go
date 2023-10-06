@@ -33,7 +33,7 @@ func (r *Report) NewReport(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := r.service.NewReport(req.Context(), report); err != nil {
+	if _, err := r.service.NewReport(req.Context(), report); err != nil {
 		Response{Error: err}.JSON(w)
 		return
 	}

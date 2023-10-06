@@ -75,3 +75,18 @@ func TemporaryDir(dir string) (string, error) {
 
 	return tmpDir, nil
 }
+
+func ReadDir(dir string) ([]string, error) {
+	var files []string
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, e := range entries {
+		files = append(files, filepath.Join(dir, e.Name()))
+	}
+
+	return files, nil
+}

@@ -3,11 +3,15 @@ package service
 import (
 	"context"
 	"github.com/go-co-op/gocron"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/util"
+	"strconv"
+
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/entity"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/mail"
 )
 
 type ReportScheduleService interface {
@@ -25,14 +29,17 @@ type ReportSchedule struct {
 	report   ReportService
 	store    store.ReportScheduleStoreManager
 	schedule cron.ScheduleManager
+	sender   mail.Sender
 }
 
-func NewReportScheduleService(settings *config.ReporterAppConfig, logger *log.Logger, store store.ReportScheduleStoreManager, schedule cron.ScheduleManager) *ReportSchedule {
+func NewReportScheduleService(settings *config.ReporterAppConfig, logger *log.Logger, report ReportService, store store.ReportScheduleStoreManager, schedule cron.ScheduleManager, sender mail.Sender) *ReportSchedule {
 	return &ReportSchedule{
 		settings: settings,
 		logger:   logger,
+		report:   report,
 		store:    store,
 		schedule: schedule,
+		sender:   sender,
 	}
 }
 
@@ -71,16 +78,24 @@ func (r *ReportSchedule) NewReportScheduleJob(ctx context.Context, schedule enti
 	fn := func(job gocron.Job) error {
 		r.logger.Debug("from cronjob")
 
-		/*
-			if err := r.report.NewReport(ctx, schedule.Report); err != nil {
-				return err
-			}
-		*/
+		tmpDir, err := r.report.NewReport(ctx, schedule.Report)
+		if err != nil {
+			return err
+		}
+
+		attachments, err := util.ReadDir(tmpDir)
+		if err != nil {
+			return err
+		}
+
+		if err := r.sender.Send(schedule.Report.Recipients, []byte("test"), []byte(schedule.Report.Message), attachments); err != nil {
+			return err
+		}
 
 		return nil
 	}
 
-	job, err := r.schedule.ScheduleJob(schedule.Interval, "0", fn)
+	job, err := r.schedule.ScheduleJob(schedule.Interval, strconv.FormatInt(schedule.ID, 10), fn)
 	if err != nil {
 		return err
 	}

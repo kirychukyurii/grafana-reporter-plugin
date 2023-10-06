@@ -15,6 +15,7 @@ require (
 	github.com/valyala/fasthttp v1.50.0
 	go.etcd.io/bbolt v1.3.7
 	golang.org/x/sync v0.3.0
+	gopkg.in/mail.v2 v2.3.1
 	modernc.org/sqlite v1.25.0
 )
 
@@ -105,6 +106,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230731193218-e0aa005b6bdf // indirect
 	google.golang.org/grpc v1.57.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/fsnotify/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

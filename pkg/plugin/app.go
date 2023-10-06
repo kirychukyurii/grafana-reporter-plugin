@@ -2,11 +2,13 @@ package plugin
 
 import (
 	"context"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/mail"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/boltdb"
 	"net/http"
 	"time"
@@ -39,32 +41,37 @@ type App struct {
 func New(ctx context.Context, s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 	setting, err := config.New(s)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("initializing config: %v", err)
 	}
 
 	logger := log.New()
 
 	database, err := boltdb.New(setting, logger)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("initializing database client: %v", err)
 	}
 
 	pool := cdp.NewBrowserPool(setting)
 	grafanaClient, err := grafana.New(setting)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("initializing grafana client: %v", err)
+	}
+
+	m, err := mail.New(setting.MailConfig.Host, setting.MailConfig.Port, setting.MailConfig.Username, setting.MailConfig.Password)
+	if err != nil {
+		return nil, fmt.Errorf("initializing mail client: %v", err)
 	}
 
 	timezone, err := time.LoadLocation("Local")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("load default timezone: %v", err)
 	}
 
 	scheduler := cron.NewScheduler(timezone)
 
-	app, err := Initialize(setting, database, logger, grafanaClient, pool, scheduler)
+	app, err := Initialize(setting, database, logger, grafanaClient, pool, scheduler, m)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("initializing app: %v", err)
 	}
 
 	if err = app.cron.LoadSchedules(); err != nil {

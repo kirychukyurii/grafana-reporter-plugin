@@ -14,9 +14,17 @@ type ReporterAppConfig struct {
 	WorkersCount  int    `json:"workers_count,omitempty" env:"GF_PLUGIN_WORKERS_COUNT"`
 	DataDirectory string `json:"data_directory,omitempty" env:"GF_PLUGIN_DATA_DIRECTORY"`
 
+	MailConfig
 	GrafanaConfig
 	DatabaseConfig
 	BrowserConfig
+}
+
+type MailConfig struct {
+	Host     string `json:"mail_host" env:"GF_PLUGIN_MAIL_HOST"`
+	Port     int    `json:"mail_port" env:"GF_PLUGIN_MAIL_PORT"`
+	Username string `json:"mail_username" env:"GF_PLUGIN_MAIL_USERNAME"`
+	Password string `json:"mail_password" env:"GF_PLUGIN_MAIL_PASSWORD"`
 }
 
 type GrafanaConfig struct {

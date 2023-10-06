@@ -19,7 +19,7 @@ import (
 
 type ReportService interface {
 	Report(ctx context.Context, id int) (*entity.Report, error)
-	NewReport(ctx context.Context, report entity.Report) error
+	NewReport(ctx context.Context, report entity.Report) (string, error)
 }
 
 type Report struct {
@@ -48,7 +48,7 @@ func (r *Report) Report(ctx context.Context, id int) (*entity.Report, error) {
 	return nil, nil
 }
 
-func (r *Report) NewReport(ctx context.Context, report entity.Report) error {
+func (r *Report) NewReport(ctx context.Context, report entity.Report) (string, error) {
 	defer r.browserPool.Cleanup()
 
 	dashboard, err := r.grafanaHTTPClient.Dashboard(ctx, entity.DashboardOpts{
@@ -56,17 +56,17 @@ func (r *Report) NewReport(ctx context.Context, report entity.Report) error {
 		// Variables:   r.Variables,
 	})
 	if err != nil {
-		return fmt.Errorf("grafanaHTTPClient.Dashboard: %v", err)
+		return "", fmt.Errorf("grafanaHTTPClient.Dashboard: %v", err)
 	}
 
 	tmpDir, err := util.TemporaryDir(filepath.Join(r.settings.DataDirectory, "file"))
 	if err != nil {
-		return fmt.Errorf("ensure dir RW: %v", err)
+		return "", fmt.Errorf("ensure dir RW: %v", err)
 	}
 
 	r.browser, err = r.browserPool.Get(r.settings)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer r.browserPool.Put(r.browser)
 
@@ -79,7 +79,7 @@ func (r *Report) NewReport(ctx context.Context, report entity.Report) error {
 	}(r.pagePool)
 
 	if err = r.exportDashboardPNG(ctx, dashboard, tmpDir); err != nil {
-		return err
+		return "", err
 	}
 
 	eg, gctx := errgroup.WithContext(ctx)
@@ -101,10 +101,10 @@ func (r *Report) NewReport(ctx context.Context, report entity.Report) error {
 	}
 
 	if err = eg.Wait(); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return tmpDir, nil
 
 }
 

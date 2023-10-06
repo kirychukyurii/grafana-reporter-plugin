@@ -5,6 +5,7 @@ package plugin
 
 import (
 	"github.com/google/wire"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/mail"
 
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/grafana"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
@@ -32,7 +33,7 @@ var wireBasicSet = wire.NewSet(
 	wire.Bind(new(cronhandler.ReportScheduleCronHandler), new(*cronhandler.ReportScheduleCron)),
 )
 
-func Initialize(*config.ReporterAppConfig, boltdb.DatabaseManager, *log.Logger, grafana.GrafanaHTTPAdapter, cdp.BrowserPoolManager, cron.ScheduleManager) (*App, error) {
+func Initialize(*config.ReporterAppConfig, boltdb.DatabaseManager, *log.Logger, grafana.GrafanaHTTPAdapter, cdp.BrowserPoolManager, cron.ScheduleManager, mail.Sender) (*App, error) {
 	wire.Build(wireBasicSet, newApp)
 	return &App{}, nil
 }

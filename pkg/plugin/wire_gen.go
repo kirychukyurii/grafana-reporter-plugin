@@ -17,16 +17,17 @@ import (
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/mail"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/boltdb"
 )
 
 // Injectors from wire.go:
 
-func Initialize(reporterAppConfig *config.ReporterAppConfig, databaseManager boltdb.DatabaseManager, logger *log.Logger, grafanaHTTPAdapter grafana.GrafanaHTTPAdapter, browserPoolManager cdp.BrowserPoolManager, scheduleManager cron.ScheduleManager) (*App, error) {
+func Initialize(reporterAppConfig *config.ReporterAppConfig, databaseManager boltdb.DatabaseManager, logger *log.Logger, grafanaHTTPAdapter grafana.GrafanaHTTPAdapter, browserPoolManager cdp.BrowserPoolManager, scheduleManager cron.ScheduleManager, sender mail.Sender) (*App, error) {
 	report := service.NewReportService(reporterAppConfig, grafanaHTTPAdapter, browserPoolManager)
 	httpReport := http.NewReportHandler(report)
 	reportScheduleStore := store.NewReportScheduleStore(databaseManager, logger)
-	reportSchedule := service.NewReportScheduleService(reporterAppConfig, logger, reportScheduleStore, scheduleManager)
+	reportSchedule := service.NewReportScheduleService(reporterAppConfig, logger, report, reportScheduleStore, scheduleManager, sender)
 	httpReportSchedule := http.NewReportScheduleHandler(reportSchedule)
 	handler := http.New(httpReport, httpReportSchedule)
 	reportScheduleCron := cron2.NewReportScheduleCronHandler(logger, reportSchedule)
