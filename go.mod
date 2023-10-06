@@ -16,7 +16,7 @@ require (
 	go.etcd.io/bbolt v1.3.7
 	golang.org/x/sync v0.3.0
 	gopkg.in/mail.v2 v2.3.1
-	modernc.org/sqlite v1.25.0
+	modernc.org/sqlite v1.26.0
 )
 
 require (
