@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
+	"strings"
 	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
@@ -28,8 +29,11 @@ type MailConfig struct {
 }
 
 type GrafanaConfig struct {
-	URL                string `json:"grafana_url,omitempty" env:"GF_PLUGIN_GRAFANA_URL"`
-	InsecureSkipVerify bool   `json:"grafana_insecure_skip_verify,omitempty" env:"GF_PLUGIN_GRAFANA_INSECURE_SKIP_VERIFY"`
+	URL                string        `json:"grafana_url,omitempty" env:"GF_PLUGIN_GRAFANA_URL"`
+	InsecureSkipVerify bool          `json:"grafana_insecure_skip_verify,omitempty" env:"GF_PLUGIN_GRAFANA_INSECURE_SKIP_VERIFY"`
+	RetryNum           int           `json:"grafana_retry_num,omitempty" env:"GF_PLUGIN_GRAFANA_RETRY_NUM"`
+	RetryTimeout       time.Duration `json:"grafana_retry_timeout" env:"GF_PLUGIN_GRAFANA_RETRY_TIMEOUT"`
+	RetryStatusCodes   string        `json:"grafana_retry_status_codes,omitempty" env:"GF_PLUGIN_GRAFANA_RETRY_STATUS_CODES"`
 
 	APIToken string `json:"grafana_api_token,omitempty" env:"GF_PLUGIN_GRAFANA_API_TOKEN"`
 	Username string `json:"grafana_username,omitempty" env:"GF_PLUGIN_GRAFANA_USERNAME"`
@@ -67,4 +71,17 @@ func New(settings backend.AppInstanceSettings) (*ReporterAppConfig, error) {
 
 func (a *GrafanaConfig) BasicAuth() string {
 	return fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", a.Username, a.Password))))
+}
+
+func (a *GrafanaConfig) RetryStatusCodesArr() []string {
+	codes := make([]string, 0)
+	retryCodes := strings.Split(a.RetryStatusCodes, " ")
+
+	for _, retryCode := range retryCodes {
+		if len(retryCode) == 3 {
+			codes = append(codes, retryCode)
+		}
+	}
+
+	return codes
 }

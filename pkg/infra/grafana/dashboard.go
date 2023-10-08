@@ -2,7 +2,6 @@ package grafana
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/url"
 
@@ -44,13 +43,8 @@ func (c *Client) Dashboard(ctx context.Context, opts entity.DashboardOpts) (*Das
 	var u url.Values
 	u.Encode()
 
-	body, err := c.Request(ctx, "GET", dashboardUrl, nil)
-	if err != nil {
+	if err := c.Request(ctx, "GET", dashboardUrl, nil, &dashboard); err != nil {
 		return nil, err
-	}
-
-	if err = json.Unmarshal(body, &dashboard); err != nil {
-		return nil, fmt.Errorf("parse recieved dashboard json: %v", err)
 	}
 
 	return &dashboard, nil
