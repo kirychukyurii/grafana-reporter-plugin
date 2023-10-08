@@ -1,0 +1,55 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "app",
+  "name": "Grafana Reporter Plugin",
+  "id": "kirychukyurii-reporter-app",
+  "backend": true,
+  "executable": "gpx_grafana_reporter_plugin",
+  "info": {
+    "keywords": ["app", "reporting", "email", "pdf", "csv"],
+    "description": "",
+    "author": {
+      "name": "kirychukyurii"
+    },
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [
+      {
+        "name": "Website",
+        "url": "https://github.com/kirychukyurii/grafana-reporter-plugin"
+      },
+      {
+        "name": "License",
+        "url": "https://github.com/kirychukyurii/grafana-reporter-plugin/blob/main/LICENSE"
+      }
+    ],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "includes": [
+    {
+      "type": "page",
+      "name": "Schedules",
+      "icon": "fa fa-calendar",
+      "path": "/a/%PLUGIN_ID%/schedules",
+      "role": "Admin",
+      "addToNav": true,
+      "defaultNav": true
+    },
+    {
+      "type": "page",
+      "icon": "cog",
+      "name": "Configuration",
+      "path": "/plugins/%PLUGIN_ID%",
+      "role": "Admin",
+      "addToNav": true
+    }
+  ],
+  "dependencies": {
+    "grafanaDependency": ">=9.5.3",
+    "plugins": []
+  }
+}

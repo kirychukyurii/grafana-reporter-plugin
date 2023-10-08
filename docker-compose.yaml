@@ -1,0 +1,42 @@
+version: "3.0"
+
+networks:
+  grafana-network:
+
+services:
+
+  grafana:
+    container_name: "grafana-reporter-plugin"
+    build:
+      context: ./.config
+      args:
+        grafana_image: ${GRAFANA_IMAGE:-grafana-enterprise}
+        grafana_version: ${GRAFANA_VERSION:-latest}
+    environment:
+      - "GF_PATHS_CONFIG=/etc/grafana/grafana.ini"
+    ports:
+      - "3000:3000/tcp"
+    networks:
+      - "grafana-network"
+    volumes:
+      - "./dist:/var/lib/grafana/plugins/grafana-reporter-plugin"
+      - "./provisioning:/etc/grafana/provisioning"
+      - "./conf/custom.ini:/etc/grafana/grafana.ini"
+      - "./.tmp/grafana-data:/opt/reporter"
+
+  chrome:
+    container_name: "headless-chrome"
+    image: "ghcr.io/go-rod/rod:latest"
+    command:
+      - "chrome"
+      - "--headless"
+      - "--no-sandbox"
+      - "--remote-debugging-port=9222"
+      - "--remote-debugging-address=0.0.0.0"
+      - "--user-data-dir=/opt/rod/user-data"
+    ports:
+      - "9222:9222/tcp"
+    networks:
+      - "grafana-network"
+    volumes:
+      - "./.tmp/chrome-data:/opt/rod/user-data"
