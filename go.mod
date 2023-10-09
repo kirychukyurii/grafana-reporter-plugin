@@ -14,7 +14,7 @@ require (
 	github.com/pressly/goose/v3 v3.15.0
 	github.com/valyala/fasthttp v1.50.0
 	go.etcd.io/bbolt v1.3.7
-	golang.org/x/sync v0.3.0
+	golang.org/x/sync v0.4.0
 	gopkg.in/mail.v2 v2.3.1
 	modernc.org/sqlite v1.25.0
 )
