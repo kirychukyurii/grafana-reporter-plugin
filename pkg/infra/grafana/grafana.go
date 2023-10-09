@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/apperrors"
 	"net/http"
 	"net/url"
 	"path"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/valyala/fasthttp"
 
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/apperrors"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 )
 
