@@ -3,11 +3,11 @@ package plugin
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/app"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/resource/httpadapter"
 
@@ -32,21 +32,21 @@ var (
 )
 
 type App struct {
-	settings    *config.ReporterAppConfig
-	router      *mux.Router
-	httpadapter backend.CallResourceHandler
-	handler     handler.HandlerManager
-	cron        cronhandler.ReportScheduleCronHandler
+	im                  instancemgmt.InstanceManager
+	httpResourceHandler backend.CallResourceHandler
+
+	settings *config.ReporterAppConfig
+	logger   *log.Logger
+	router   *mux.Router
+	handler  handler.HandlerManager
+	cron     cronhandler.ReportScheduleCronHandler
 }
 
-// New creates a new *App instance.
-func New(ctx context.Context, s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
-	setting, err := config.New(s)
+func NewApp(logger *log.Logger) (*App, error) {
+	setting, err := config.New(backend.AppInstanceSettings{})
 	if err != nil {
 		return nil, fmt.Errorf("initializing config: %v", err)
 	}
-
-	logger := log.New()
 
 	database, err := boltdb.New(setting, logger)
 	if err != nil {
@@ -71,40 +71,39 @@ func New(ctx context.Context, s backend.AppInstanceSettings) (instancemgmt.Insta
 
 	scheduler := cron.NewScheduler(timezone)
 
-	app, err := Initialize(setting, database, logger, grafanaClient, pool, scheduler, m)
+	a, err := Initialize(setting, database, logger, grafanaClient, pool, scheduler, m)
 	if err != nil {
 		return nil, fmt.Errorf("initializing app: %v", err)
 	}
 
-	if err = app.cron.LoadSchedules(); err != nil {
+	if err = a.cron.LoadSchedules(); err != nil {
 		return nil, err
 	}
 
-	app.registerRoutes()
+	a.im = app.NewInstanceManager(New)
+	a.registerRoutes()
 
-	return app, nil
+	return a, nil
 }
 
 func newApp(setting *config.ReporterAppConfig, handler handler.HandlerManager, cronHandler cronhandler.ReportScheduleCronHandler) (*App, error) {
-	r := mux.NewRouter()
-	a := httpadapter.New(r)
+	router := mux.NewRouter()
+	httpResourceHandler := httpadapter.New(router)
+	a := &App{
+		httpResourceHandler: httpResourceHandler,
 
-	return &App{
-		settings:    setting,
-		router:      r,
-		httpadapter: a,
-		handler:     handler,
-		cron:        cronHandler,
-	}, nil
-}
+		settings: setting,
+		router:   router,
+		handler:  handler,
+		cron:     cronHandler,
+	}
 
-func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	a.router.ServeHTTP(w, r)
+	return a, nil
 }
 
 // CallResource HTTP style resource
 func (a *App) CallResource(ctx context.Context, req *backend.CallResourceRequest, sender backend.CallResourceResponseSender) error {
-	return a.httpadapter.CallResource(ctx, req, sender)
+	return a.httpResourceHandler.CallResource(ctx, req, sender)
 }
 
 // CheckHealth handles health checks sent from Grafana to the plugin.
@@ -118,5 +117,5 @@ func (a *App) CheckHealth(_ context.Context, _ *backend.CheckHealthRequest) (*ba
 // Dispose here tells plugin SDK that plugin wants to clean up resources when a new instance
 // created.
 func (a *App) Dispose() {
-	backend.Logger.Info("called when the settings change", "cfg", a.settings)
+	a.logger.Info("called when the settings change", "cfg", a.settings)
 }

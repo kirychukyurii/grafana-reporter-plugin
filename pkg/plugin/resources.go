@@ -1,8 +1,6 @@
 package plugin
 
-import (
-	"net/http"
-)
+import "net/http"
 
 func (a *App) registerRoutes() {
 	//a.router.HandleFunc("/ping", a.handler.Ping)
