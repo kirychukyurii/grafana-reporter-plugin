@@ -2,6 +2,7 @@ package log
 
 import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
+	"os"
 )
 
 type Logger struct {
@@ -14,6 +15,7 @@ func New() *Logger {
 	}
 }
 
-func (l *Logger) Println(args ...interface{}) {
-	l.Debug("headless browser", args...)
+func (l *Logger) Fatal(msg string, args ...interface{}) {
+	l.Error(msg, args...)
+	os.Exit(1)
 }

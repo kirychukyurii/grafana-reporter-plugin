@@ -33,7 +33,7 @@ var wireBasicSet = wire.NewSet(
 	wire.Bind(new(cronhandler.ReportScheduleCronHandler), new(*cronhandler.ReportScheduleCron)),
 )
 
-func Initialize(*config.ReporterAppConfig, boltdb.DatabaseManager, *log.Logger, grafana.GrafanaHTTPAdapter, cdp.BrowserPoolManager, cron.ScheduleManager, smtp.Sender) (*App, error) {
+func Initialize(*config.ReporterAppConfig, boltdb.DatabaseManager, *log.Logger, grafana.DashboardAdapter, cdp.BrowserPoolManager, cron.ScheduleManager, smtp.Sender) (*App, error) {
 	wire.Build(wireBasicSet, newApp)
 	return &App{}, nil
 }

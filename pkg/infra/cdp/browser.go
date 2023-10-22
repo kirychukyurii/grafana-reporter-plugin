@@ -9,7 +9,6 @@ import (
 	"github.com/go-rod/rod/lib/proto"
 
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
 )
 
 type BrowserManager interface {
@@ -39,7 +38,7 @@ func NewBrowser(settings *config.ReporterAppConfig) (*Browser, error) {
 		}
 	}
 
-	browser := rod.New().ControlURL(launch).Logger(log.New()).Trace(true)
+	browser := rod.New().ControlURL(launch).Trace(true)
 
 	return &Browser{
 		Browser: browser,
