@@ -23,7 +23,7 @@ import (
 
 // Injectors from wire.go:
 
-func Initialize(reporterAppConfig *config.ReporterAppConfig, databaseManager boltdb.DatabaseManager, logger *log.Logger, dashboardAdapter grafana.DashboardAdapter, browserPoolManager cdp.BrowserPoolManager, scheduleManager cron.ScheduleManager, sender smtp.Sender) (*App, error) {
+func Initialize(reporterAppConfig *config.ReporterAppConfig, databaseManager boltdb.DatabaseManager, logger *log.Logger, dashboardAdapter grafana.DashboardAdapter, browserPoolManager cdp.BrowserPoolManager, scheduleManager cron.ScheduleManager, sender smtp.Sender) (*AppInstance, error) {
 	report := service.NewReportService(reporterAppConfig, logger, dashboardAdapter, browserPoolManager)
 	httpReport := http.NewReportHandler(report)
 	reportScheduleStore := store.NewReportScheduleStore(databaseManager, logger)
@@ -31,11 +31,11 @@ func Initialize(reporterAppConfig *config.ReporterAppConfig, databaseManager bol
 	httpReportSchedule := http.NewReportScheduleHandler(reportSchedule)
 	handler := http.New(httpReport, httpReportSchedule)
 	reportScheduleCron := cron2.NewReportScheduleCronHandler(logger, reportSchedule)
-	app, err := newApp(reporterAppConfig, handler, reportScheduleCron)
+	appInstance, err := newAppInstance(reporterAppConfig, handler, reportScheduleCron)
 	if err != nil {
 		return nil, err
 	}
-	return app, nil
+	return appInstance, nil
 }
 
 // wire.go:

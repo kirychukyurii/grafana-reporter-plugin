@@ -2,7 +2,7 @@ package plugin
 
 import "net/http"
 
-func (a *App) registerRoutes() {
+func (a *AppInstance) registerRoutes() {
 	//a.router.HandleFunc("/ping", a.handler.Ping)
 	//a.router.HandleFunc("/echo", a.handler.Echo)
 
