@@ -1,7 +1,26 @@
 package setting
 
-type InstanceSetting struct{}
+import (
+	"github.com/grafana/grafana-plugin-sdk-go/backend"
 
-func NewInstanceSetting() *InstanceSetting {
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store"
+)
+
+const storeBucket = "instance_settings"
+
+type InstanceSetting struct {
+	OrgID    int
+	Timezone string `json:"timezone"`
+}
+
+func NewInstanceSetting(settings backend.AppInstanceSettings) *InstanceSetting {
+	return nil
+}
+
+func (s *InstanceSetting) Store(db store.DatabaseManager) error {
+	if err := db.CreateObjectWithId(storeBucket, s.OrgID, s); err != nil {
+		return err
+	}
+
 	return nil
 }

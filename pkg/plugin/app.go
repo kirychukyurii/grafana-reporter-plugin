@@ -34,11 +34,13 @@ type App struct {
 
 func NewApp(logger *log.Logger) (*App, error) {
 	logger.Info("NewApp")
-	im := app.NewInstanceManager(New(logger))
+
 	as, err := setting.NewAppSetting()
 	if err != nil {
 		return nil, err
 	}
+
+	im := app.NewInstanceManager(New(logger))
 
 	/*database, err := boltdb.New(setting, logger)
 	if err != nil {
