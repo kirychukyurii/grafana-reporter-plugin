@@ -5,10 +5,9 @@ package plugin
 
 import (
 	"github.com/google/wire"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/smtp"
 
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/grafana"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
+	storaAdapter "github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/service"
 	cronhandler "github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/cron"
@@ -16,12 +15,13 @@ import (
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/boltdb"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/smtp"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store"
 )
 
 var wireBasicSet = wire.NewSet(
-	store.ProviderSet,
-	wire.Bind(new(store.ReportScheduleStoreManager), new(*store.ReportScheduleStore)),
+	storaAdapter.ProviderSet,
+	wire.Bind(new(storaAdapter.ReportScheduleStoreManager), new(*storaAdapter.ReportScheduleStore)),
 	service.ProviderSet,
 	wire.Bind(new(service.ReportService), new(*service.Report)),
 	wire.Bind(new(service.ReportScheduleService), new(*service.ReportSchedule)),
@@ -33,7 +33,7 @@ var wireBasicSet = wire.NewSet(
 	wire.Bind(new(cronhandler.ReportScheduleCronHandler), new(*cronhandler.ReportScheduleCron)),
 )
 
-func Initialize(*config.ReporterAppConfig, boltdb.DatabaseManager, *log.Logger, grafana.DashboardAdapter, cdp.BrowserPoolManager, cron.ScheduleManager, smtp.Sender) (*AppInstance, error) {
+func Initialize(*config.ReporterAppConfig, store.DatabaseManager, *log.Logger, grafana.DashboardAdapter, cdp.BrowserPoolManager, cron.ScheduleManager, smtp.Sender) (*AppInstance, error) {
 	wire.Build(wireBasicSet, newAppInstance)
 	return &AppInstance{}, nil
 }

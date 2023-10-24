@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/apperrors"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
 	"math"
 	"path/filepath"
@@ -19,42 +18,13 @@ const (
 	EncryptedDatabaseFileName = "reporter.edb"
 )
 
-type DatabaseManager interface {
-	// SetServiceName is a generic function used to create a bucket inside a database.
-	SetServiceName(bucketName string) error
-
-	// GetObject is a generic function used to retrieve an unmarshalled object from a database.
-	GetObject(bucketName string, key []byte, object interface{}) error
-
-	// UpdateObject is a generic function used to update an object inside a database.
-	UpdateObject(bucketName string, key []byte, object interface{}) error
-
-	// DeleteObject is a generic function used to delete an object inside a database.
-	DeleteObject(bucketName string, key []byte) error
-
-	// DeleteAllObjects delete all objects where matching() returns (id, ok).
-	// TODO: think about how to return the error inside (maybe change ok to type err, and use "notfound"?
-	DeleteAllObjects(bucketName string, obj interface{}, matchingFn func(o interface{}) (id int, ok bool)) error
-
-	// CreateObject creates a new object in the bucket, using the next bucket sequence id
-	CreateObject(bucketName string, objFn func(uint64) (int, interface{})) error
-
-	// CreateObjectWithId creates a new object in the bucket, using the specified id
-	CreateObjectWithId(bucketName string, id int, obj interface{}) error
-
-	// CreateObjectWithStringId creates a new object in the bucket, using the specified id
-	CreateObjectWithStringId(bucketName string, id []byte, obj interface{}) error
-
-	// GetAll gets all objects from the bucket, using the jsoniter library to unmarshal them.
-	GetAll(bucketName string, obj interface{}, appendFn func(o interface{}) (interface{}, error)) error
-
-	// GetAllWithKeyPrefix gets all objects from the bucket, starting with the given key prefix.
-	GetAllWithKeyPrefix(bucketName string, keyPrefix []byte, obj interface{}, appendFn func(o interface{}) (interface{}, error)) error
-
-	// ConvertToKey returns an 8-byte big endian representation of v.
-	// This function is typically used for encoding integer IDs to byte slices
-	// so that they can be used as BoltDB keys.
-	ConvertToKey(v int) []byte
+type Opts struct {
+	DataDirectory   string
+	EncryptionKey   []byte
+	Timeout         int
+	InitialMmapSize int
+	MaxBatchSize    int
+	MaxBatchDelay   int
 }
 
 type Database struct {
@@ -65,25 +35,25 @@ type Database struct {
 }
 
 // New opens and initializes the BoltDB database.
-func New(cfg *config.ReporterAppConfig, logger *log.Logger) (*Database, error) {
+func New(logger *log.Logger, opts *Opts) (*Database, error) {
 	var db Database
 
-	if cfg.DatabaseConfig.EncryptionKey != nil {
+	if opts.EncryptionKey != nil {
 		db.isEncrypted = true
-		db.encryptionKey = cfg.DatabaseConfig.EncryptionKey
+		db.encryptionKey = opts.EncryptionKey
 	}
 
-	databasePath := filepath.Join(cfg.DataDirectory, db.DatabaseFileName())
+	databasePath := filepath.Join(opts.DataDirectory, db.DatabaseFileName())
 	database, err := bolt.Open(databasePath, 0600, &bolt.Options{
-		Timeout:         10 * time.Second,
-		InitialMmapSize: cfg.DatabaseConfig.InitialMmapSize,
+		Timeout:         time.Duration(opts.Timeout) * time.Second,
+		InitialMmapSize: opts.InitialMmapSize,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("open database: %v", err)
 	}
 
-	database.MaxBatchSize = cfg.DatabaseConfig.MaxBatchSize
-	database.MaxBatchDelay = cfg.DatabaseConfig.MaxBatchDelay
+	database.MaxBatchSize = opts.MaxBatchSize
+	database.MaxBatchDelay = time.Duration(opts.MaxBatchDelay) * time.Second
 	db.DB = database
 
 	return &db, nil

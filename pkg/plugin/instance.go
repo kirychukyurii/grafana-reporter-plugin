@@ -16,6 +16,7 @@ import (
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/smtp"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/boltdb"
 	"time"
 )
@@ -46,7 +47,17 @@ func New(logger *log.Logger) app.InstanceFactoryFunc {
 
 		logger.Info("settings", "set", s)
 
-		database, err := boltdb.New(setting, logger)
+		database, err := store.New(logger, store.Opts{
+			Type: store.BoltDB,
+			BoltDBOpts: &boltdb.Opts{
+				DataDirectory:   setting.DataDirectory,
+				EncryptionKey:   setting.DatabaseConfig.EncryptionKey,
+				Timeout:         setting.DatabaseConfig.Timeout,
+				InitialMmapSize: setting.DatabaseConfig.InitialMmapSize,
+				MaxBatchSize:    setting.DatabaseConfig.MaxBatchSize,
+				MaxBatchDelay:   setting.DatabaseConfig.MaxBatchDelay,
+			},
+		})
 		if err != nil {
 			return nil, fmt.Errorf("initializing database client: %v", err)
 		}

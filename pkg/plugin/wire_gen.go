@@ -9,7 +9,7 @@ package plugin
 import (
 	"github.com/google/wire"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/grafana"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
+	store2 "github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/service"
 	cron2 "github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/cron"
@@ -18,15 +18,15 @@ import (
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/smtp"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/boltdb"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store"
 )
 
 // Injectors from wire.go:
 
-func Initialize(reporterAppConfig *config.ReporterAppConfig, databaseManager boltdb.DatabaseManager, logger *log.Logger, dashboardAdapter grafana.DashboardAdapter, browserPoolManager cdp.BrowserPoolManager, scheduleManager cron.ScheduleManager, sender smtp.Sender) (*AppInstance, error) {
+func Initialize(reporterAppConfig *config.ReporterAppConfig, databaseManager store.DatabaseManager, logger *log.Logger, dashboardAdapter grafana.DashboardAdapter, browserPoolManager cdp.BrowserPoolManager, scheduleManager cron.ScheduleManager, sender smtp.Sender) (*AppInstance, error) {
 	report := service.NewReportService(reporterAppConfig, logger, dashboardAdapter, browserPoolManager)
 	httpReport := http.NewReportHandler(report)
-	reportScheduleStore := store.NewReportScheduleStore(databaseManager, logger)
+	reportScheduleStore := store2.NewReportScheduleStore(databaseManager, logger)
 	reportSchedule := service.NewReportScheduleService(reporterAppConfig, logger, report, reportScheduleStore, scheduleManager, sender)
 	httpReportSchedule := http.NewReportScheduleHandler(reportSchedule)
 	handler := http.New(httpReport, httpReportSchedule)
@@ -40,4 +40,4 @@ func Initialize(reporterAppConfig *config.ReporterAppConfig, databaseManager bol
 
 // wire.go:
 
-var wireBasicSet = wire.NewSet(store.ProviderSet, wire.Bind(new(store.ReportScheduleStoreManager), new(*store.ReportScheduleStore)), service.ProviderSet, wire.Bind(new(service.ReportService), new(*service.Report)), wire.Bind(new(service.ReportScheduleService), new(*service.ReportSchedule)), http.ProviderSet, wire.Bind(new(http.ReportHandler), new(*http.Report)), wire.Bind(new(http.ReportScheduleHandler), new(*http.ReportSchedule)), wire.Bind(new(http.HandlerManager), new(*http.Handler)), cron2.ProviderSet, wire.Bind(new(cron2.ReportScheduleCronHandler), new(*cron2.ReportScheduleCron)))
+var wireBasicSet = wire.NewSet(store2.ProviderSet, wire.Bind(new(store2.ReportScheduleStoreManager), new(*store2.ReportScheduleStore)), service.ProviderSet, wire.Bind(new(service.ReportService), new(*service.Report)), wire.Bind(new(service.ReportScheduleService), new(*service.ReportSchedule)), http.ProviderSet, wire.Bind(new(http.ReportHandler), new(*http.Report)), wire.Bind(new(http.ReportScheduleHandler), new(*http.ReportSchedule)), wire.Bind(new(http.HandlerManager), new(*http.Handler)), cron2.ProviderSet, wire.Bind(new(cron2.ReportScheduleCronHandler), new(*cron2.ReportScheduleCron)))

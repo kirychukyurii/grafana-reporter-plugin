@@ -41,10 +41,11 @@ type GrafanaConfig struct {
 }
 
 type DatabaseConfig struct {
-	MaxBatchSize    int           `json:"database_max_batch_size,omitempty" env:"GF_PLUGIN_DATABASE_MAX_BATCH_SIZE"`
-	MaxBatchDelay   time.Duration `json:"database_max_batch_delay,omitempty" env:"GF_PLUGIN_DATABASE_MAX_BATCH_DELAY"`
-	InitialMmapSize int           `json:"database_initial_mmap_size,omitempty" env:"GF_PLUGIN_DATABASE_INITIAL_MMAP_SIZE"`
-	EncryptionKey   []byte        `json:"database_encryption_key,omitempty" env:"GF_PLUGIN_DATABASE_ENCRYPTION_KEY"`
+	Timeout         int    `json:"database_timeout,omitempty" env:"GF_PLUGIN_DATABASE_TIMEOUT"`
+	MaxBatchSize    int    `json:"database_max_batch_size,omitempty" env:"GF_PLUGIN_DATABASE_MAX_BATCH_SIZE"`
+	MaxBatchDelay   int    `json:"database_max_batch_delay,omitempty" env:"GF_PLUGIN_DATABASE_MAX_BATCH_DELAY"`
+	InitialMmapSize int    `json:"database_initial_mmap_size,omitempty" env:"GF_PLUGIN_DATABASE_INITIAL_MMAP_SIZE"`
+	EncryptionKey   []byte `json:"database_encryption_key,omitempty" env:"GF_PLUGIN_DATABASE_ENCRYPTION_KEY"`
 }
 
 type BrowserConfig struct {

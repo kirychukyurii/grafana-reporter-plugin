@@ -2,10 +2,11 @@ package store
 
 import (
 	"context"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/boltdb"
 
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/entity"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store/boltdb"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store"
 )
 
 const reportScheduleBucketName = "report_schedule"
@@ -19,11 +20,11 @@ type ReportScheduleStoreManager interface {
 }
 
 type ReportScheduleStore struct {
-	store  boltdb.DatabaseManager
+	store  store.DatabaseManager
 	logger *log.Logger
 }
 
-func NewReportScheduleStore(db boltdb.DatabaseManager, logger *log.Logger) *ReportScheduleStore {
+func NewReportScheduleStore(db store.DatabaseManager, logger *log.Logger) *ReportScheduleStore {
 	if err := db.SetServiceName(reportScheduleBucketName); err != nil {
 		return nil
 	}
