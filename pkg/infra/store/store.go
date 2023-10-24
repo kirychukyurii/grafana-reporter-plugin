@@ -52,25 +52,25 @@ type DatabaseManager interface {
 	ConvertToKey(v int) []byte
 }
 
-type Opts struct {
+type Options struct {
 	Type       storeType
-	BoltDBOpts *boltdb.Opts
+	BoltDBOpts *boltdb.Options
 }
 
-func New(logger *log.Logger, opts Opts) (db DatabaseManager, err error) {
-	switch opts.Type {
+func New(logger *log.Logger, options *Options) (db DatabaseManager, err error) {
+	switch options.Type {
 	case BoltDB:
-		if opts.BoltDBOpts == nil {
+		if options.BoltDBOpts == nil {
 			return nil, fmt.Errorf("boltdb storage options can not be empty")
 		}
 
-		db, err = boltdb.New(logger, opts.BoltDBOpts)
+		db, err = boltdb.New(logger, options.BoltDBOpts)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %v", opts.Type, err)
+			return nil, fmt.Errorf("%s: %v", options.Type, err)
 		}
 
 	default:
-		return nil, fmt.Errorf("unknown storage type: %s", opts.Type)
+		return nil, fmt.Errorf("unknown storage type: %s", options.Type)
 	}
 
 	return db, nil

@@ -13,15 +13,17 @@ type ScheduleManager interface {
 }
 
 type Scheduler struct {
-	Cron *gocron.Scheduler
+	OrgID int
+	Cron  *gocron.Scheduler
 }
 
-func NewScheduler(location *time.Location) *Scheduler {
+func NewScheduler(orgID int, location *time.Location) *Scheduler {
 	scheduler := gocron.NewScheduler(location)
 	scheduler.StartAsync()
 
 	return &Scheduler{
-		Cron: scheduler,
+		OrgID: orgID,
+		Cron:  scheduler,
 	}
 }
 

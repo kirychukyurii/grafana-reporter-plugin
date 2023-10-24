@@ -13,7 +13,7 @@ type AppSetting struct {
 	DataDirectory string `json:"data_directory,omitempty" env:"GF_PLUGIN_DATA_DIRECTORY"`
 
 	MailConfig     MailConfig
-	GrafanaConfig  GrafanaConfig
+	GrafanaSetting GrafanaSetting
 	DatabaseConfig DatabaseConfig
 	BrowserConfig  BrowserConfig
 }
@@ -25,7 +25,7 @@ type MailConfig struct {
 	Password string `json:"mail_password" env:"GF_PLUGIN_MAIL_PASSWORD"`
 }
 
-type GrafanaConfig struct {
+type GrafanaSetting struct {
 	URL                string        `json:"grafana_url,omitempty" env:"GF_PLUGIN_GRAFANA_URL"`
 	InsecureSkipVerify bool          `json:"grafana_insecure_skip_verify,omitempty" env:"GF_PLUGIN_GRAFANA_INSECURE_SKIP_VERIFY"`
 	RetryNum           int           `json:"grafana_retry_num,omitempty" env:"GF_PLUGIN_GRAFANA_RETRY_NUM"`
@@ -38,10 +38,11 @@ type GrafanaConfig struct {
 }
 
 type DatabaseConfig struct {
-	MaxBatchSize    int           `json:"database_max_batch_size,omitempty" env:"GF_PLUGIN_DATABASE_MAX_BATCH_SIZE"`
-	MaxBatchDelay   time.Duration `json:"database_max_batch_delay,omitempty" env:"GF_PLUGIN_DATABASE_MAX_BATCH_DELAY"`
-	InitialMmapSize int           `json:"database_initial_mmap_size,omitempty" env:"GF_PLUGIN_DATABASE_INITIAL_MMAP_SIZE"`
-	EncryptionKey   []byte        `json:"database_encryption_key,omitempty" env:"GF_PLUGIN_DATABASE_ENCRYPTION_KEY"`
+	Timeout         int    `json:"database_timeout,omitempty" env:"GF_PLUGIN_DATABASE_TIMEOUT"`
+	MaxBatchSize    int    `json:"database_max_batch_size,omitempty" env:"GF_PLUGIN_DATABASE_MAX_BATCH_SIZE"`
+	MaxBatchDelay   int    `json:"database_max_batch_delay,omitempty" env:"GF_PLUGIN_DATABASE_MAX_BATCH_DELAY"`
+	InitialMmapSize int    `json:"database_initial_mmap_size,omitempty" env:"GF_PLUGIN_DATABASE_INITIAL_MMAP_SIZE"`
+	EncryptionKey   []byte `json:"database_encryption_key,omitempty" env:"GF_PLUGIN_DATABASE_ENCRYPTION_KEY"`
 }
 
 type BrowserConfig struct {
@@ -60,11 +61,11 @@ func NewAppSetting() (*AppSetting, error) {
 	return &config, nil
 }
 
-func (a *GrafanaConfig) BasicAuth() string {
+func (a *GrafanaSetting) BasicAuth() string {
 	return fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", a.Username, a.Password))))
 }
 
-func (a *GrafanaConfig) RetryStatusCodesArr() []string {
+func (a *GrafanaSetting) RetryStatusCodesArr() []string {
 	codes := make([]string, 0)
 	retryCodes := strings.Split(a.RetryStatusCodes, " ")
 

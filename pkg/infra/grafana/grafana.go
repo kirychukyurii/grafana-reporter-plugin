@@ -15,31 +15,40 @@ import (
 	"github.com/valyala/fasthttp"
 
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/apperrors"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 )
+
+type Options struct {
+	URL                *url.URL
+	InsecureSkipVerify bool
+
+	RetryNum         int
+	RetryTimeout     time.Duration
+	RetryStatusCodes []string
+
+	APIToken             string
+	BasicAuthCredentials string
+}
 
 // Client is a Grafana API client.
 type Client struct {
-	setting    *config.ReporterAppConfig
-	baseURL    *url.URL
+	options    *Options
 	connection *fasthttp.Client
 }
 
-func New(setting *config.ReporterAppConfig) (*Client, error) {
-	u, err := url.Parse(setting.GrafanaConfig.URL)
+func New(options *Options) (*Client, error) {
+	/*u, err := url.Parse(opts.URL)
 	if err != nil {
 		return nil, err
-	}
+	}*/
 
 	cli := fasthttp.Client{
 		TLSConfig: &tls.Config{
-			InsecureSkipVerify: setting.GrafanaConfig.InsecureSkipVerify,
+			InsecureSkipVerify: options.InsecureSkipVerify,
 		},
 	}
 
 	return &Client{
-		setting:    setting,
-		baseURL:    u,
+		options:    options,
 		connection: &cli,
 	}, nil
 }
@@ -50,20 +59,20 @@ func (c *Client) Request(ctx context.Context, requestMethod, requestPath string,
 		shouldRetry bool
 	)
 
-	retryStatusCodes := c.setting.GrafanaConfig.RetryStatusCodesArr()
+	retryStatusCodes := c.options.RetryStatusCodes
 	if len(retryStatusCodes) == 0 {
 		retryStatusCodes = []string{"429", "5xx"}
 	}
 
-	for n := 0; n <= c.setting.GrafanaConfig.RetryNum; n++ {
+	for n := 0; n <= c.options.RetryNum; n++ {
 
 		// wait a bit if that's not the first request
 		if n != 0 {
-			if c.setting.GrafanaConfig.RetryTimeout == 0 {
-				c.setting.GrafanaConfig.RetryTimeout = time.Second * 5
+			if c.options.RetryTimeout == 0 {
+				c.options.RetryTimeout = time.Second * 5
 			}
 
-			time.Sleep(time.Second * c.setting.GrafanaConfig.RetryTimeout)
+			time.Sleep(time.Second * c.options.RetryTimeout)
 		}
 
 		// If err is not nil, retry again
@@ -91,7 +100,7 @@ func (c *Client) newRequest(retryStatusCodes []string, requestMethod, requestPat
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 
-	u := c.baseURL
+	u := c.options.URL
 	u.Path = path.Join(u.Path, requestPath)
 	req.SetRequestURI(u.String())
 	req.Header.SetMethod(requestMethod)
@@ -105,7 +114,7 @@ func (c *Client) newRequest(retryStatusCodes []string, requestMethod, requestPat
 		}
 	}
 
-	if auth := c.setting.GrafanaConfig.BasicAuth(); auth != "" {
+	if auth := c.options.BasicAuthCredentials; auth != "" {
 		req.Header.Add("Authorization", auth)
 	}
 

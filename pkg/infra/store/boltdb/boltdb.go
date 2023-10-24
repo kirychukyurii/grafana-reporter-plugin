@@ -18,7 +18,7 @@ const (
 	EncryptedDatabaseFileName = "reporter.edb"
 )
 
-type Opts struct {
+type Options struct {
 	DataDirectory   string
 	EncryptionKey   []byte
 	Timeout         int
@@ -35,25 +35,25 @@ type Database struct {
 }
 
 // New opens and initializes the BoltDB database.
-func New(logger *log.Logger, opts *Opts) (*Database, error) {
+func New(logger *log.Logger, options *Options) (*Database, error) {
 	var db Database
 
-	if opts.EncryptionKey != nil {
+	if options.EncryptionKey != nil {
 		db.isEncrypted = true
-		db.encryptionKey = opts.EncryptionKey
+		db.encryptionKey = options.EncryptionKey
 	}
 
-	databasePath := filepath.Join(opts.DataDirectory, db.DatabaseFileName())
+	databasePath := filepath.Join(options.DataDirectory, db.DatabaseFileName())
 	database, err := bolt.Open(databasePath, 0600, &bolt.Options{
-		Timeout:         time.Duration(opts.Timeout) * time.Second,
-		InitialMmapSize: opts.InitialMmapSize,
+		Timeout:         time.Duration(options.Timeout) * time.Second,
+		InitialMmapSize: options.InitialMmapSize,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("open database: %v", err)
 	}
 
-	database.MaxBatchSize = opts.MaxBatchSize
-	database.MaxBatchDelay = time.Duration(opts.MaxBatchDelay) * time.Second
+	database.MaxBatchSize = options.MaxBatchSize
+	database.MaxBatchDelay = time.Duration(options.MaxBatchDelay) * time.Second
 	db.DB = database
 
 	return &db, nil
