@@ -58,7 +58,6 @@ type Opts struct {
 }
 
 func New(logger *log.Logger, opts Opts) (db DatabaseManager, err error) {
-
 	switch opts.Type {
 	case BoltDB:
 		if opts.BoltDBOpts == nil {
