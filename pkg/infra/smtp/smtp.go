@@ -22,14 +22,14 @@ func New(host string, port int, username, password string) (*Mail, error) {
 	d := gomail.NewDialer(host, port, username, password)
 	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 
-	dial, err := d.Dial()
+	/*dial, err := d.Dial()
 	if err != nil {
 		return nil, err
 	}
-	defer dial.Close()
+	defer dial.Close()*/
 
 	from := username
-	_, err = mail.ParseAddress(from)
+	_, err := mail.ParseAddress(from)
 	if err != nil {
 		from = fmt.Sprintf("%s@%s", username, host)
 	}

@@ -127,26 +127,35 @@ func (r *Report) exportDashboardPNG(ctx context.Context, dashboard *gutils.Dashb
 		return err
 	}
 
-	panels, err := page.Elements("[data-panelId]")
+	panels, err := page.Elements(`[data-panelId]`)
 	if err != nil {
 		return fmt.Errorf("data-panelId elements: %v", err)
 	}
 
 	panelCount := len(panels)
-	panelsRendered, err := page.Elements("[class$='panel-content']")
+	panelsRendered, err := page.Elements(`[class$='panel-content']`)
 	if err != nil {
 		return fmt.Errorf("panel-content elements: %v", err)
 	}
 
 	backend.Logger.Debug("panels", "panelCount", panelCount, "panelsRendered", panelsRendered)
-	// panelRenderedCount := 0
+	panelsRenderedCount := 0
 	for i, p := range panelsRendered {
 		// https://github.com/grafana/grafana-image-renderer/blob/master/src/browser/browser.ts#L344
-		backend.Logger.Debug("panelRenderedCount", "i", i, "panelRendered", p)
+		r.logger.Debug("panelRenderedCount", "i", i, "panelRendered", p)
+		panelsRenderedCount++
 	}
 
-	if err = page.ScreenshotFullPage(filepath.Join(tmpDir, fmt.Sprintf("%s.png", dashboard.Model.Uid))); err != nil {
+	dRow, err := page.Elements(`'.dashboard-row'`)
+	if err != nil {
 		return err
+	}
+
+	totalPanelsRendered := panelsRenderedCount + len(dRow)
+	if totalPanelsRendered >= panelCount {
+		if err = page.ScreenshotFullPage(filepath.Join(tmpDir, fmt.Sprintf("%s.png", dashboard.Model.Uid))); err != nil {
+			return err
+		}
 	}
 
 	return nil
