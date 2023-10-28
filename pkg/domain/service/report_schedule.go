@@ -27,11 +27,11 @@ type ReportSchedule struct {
 	logger   *log.Logger
 	report   ReportService
 	store    store.ReportScheduleStoreManager
-	schedule cron.Schedulers
+	schedule *cron.Schedulers
 	sender   smtp.Sender
 }
 
-func NewReportScheduleService(logger *log.Logger, report ReportService, store store.ReportScheduleStoreManager, schedule cron.Schedulers, sender smtp.Sender) *ReportSchedule {
+func NewReportScheduleService(logger *log.Logger, report ReportService, store store.ReportScheduleStoreManager, schedule *cron.Schedulers, sender smtp.Sender) *ReportSchedule {
 	subLogger := &log.Logger{
 		Logger: logger.With("component.type", "service", "component", "reportSchedule"),
 	}
@@ -108,7 +108,11 @@ func (r *ReportSchedule) NewReportScheduleJob(ctx context.Context, schedule enti
 		return nil
 	}
 
-	job, err := r.schedule[schedule.Report.OrgID].ScheduleJob(schedule.Interval, strconv.FormatInt(schedule.ID, 10), fn)
+	s, ok := r.schedule.Load(schedule.Report.OrgID)
+	if !ok {
+
+	}
+	job, err := s.ScheduleJob(schedule.Interval, strconv.FormatInt(schedule.ID, 10), fn)
 	if err != nil {
 		return err
 	}

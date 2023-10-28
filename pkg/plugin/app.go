@@ -80,7 +80,7 @@ func NewApp(logger *log.Logger) (*App, error) {
 			return nil, fmt.Errorf("load default timezone: %v", err)
 		}
 
-		schedulers[os.OrgID] = cron.NewScheduler(timezone)
+		schedulers.Store(os.OrgID, cron.NewScheduler(timezone))
 	}
 
 	b := cdp.NewBrowserPool(as.WorkersCount)
@@ -113,7 +113,7 @@ func NewApp(logger *log.Logger) (*App, error) {
 		return nil, fmt.Errorf("initializing mail client: %v", err)
 	}
 
-	cronHandler, err := InitializeCronHandler(s, db, logger, gCli, b, schedulers, m)
+	cronHandler, err := InitializeCronHandler(s, db, logger, gCli, b, &schedulers, m)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func NewApp(logger *log.Logger) (*App, error) {
 		return nil, err
 	}
 
-	im := app.NewInstanceManager(New(logger, db, s, schedulers, m, b, gCli))
+	im := app.NewInstanceManager(New(logger, db, s, &schedulers, m, b, gCli))
 
 	return &App{
 		im: im,

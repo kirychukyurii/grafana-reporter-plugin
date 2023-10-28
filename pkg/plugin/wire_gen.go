@@ -23,7 +23,7 @@ import (
 
 // Injectors from wire.go:
 
-func Initialize(settingSetting *setting.Setting, databaseManager store.DatabaseManager, logger *log.Logger, dashboardAdapter grafana.DashboardAdapter, browserPoolManager cdp.BrowserPoolManager, schedulers cron.Schedulers, sender smtp.Sender) (*AppInstance, error) {
+func Initialize(settingSetting *setting.Setting, databaseManager store.DatabaseManager, logger *log.Logger, dashboardAdapter grafana.DashboardAdapter, browserPoolManager cdp.BrowserPoolManager, schedulers *cron.Schedulers, sender smtp.Sender) (*AppInstance, error) {
 	report := service.NewReportService(settingSetting, logger, dashboardAdapter, browserPoolManager)
 	httpReport := http.NewReportHandler(report)
 	reportScheduleStore := store2.NewReportScheduleStore(databaseManager, logger)
@@ -38,7 +38,7 @@ func Initialize(settingSetting *setting.Setting, databaseManager store.DatabaseM
 	return appInstance, nil
 }
 
-func InitializeCronHandler(settingSetting *setting.Setting, databaseManager store.DatabaseManager, logger *log.Logger, dashboardAdapter grafana.DashboardAdapter, browserPoolManager cdp.BrowserPoolManager, schedulers cron.Schedulers, sender smtp.Sender) (*cron2.ReportScheduleCron, error) {
+func InitializeCronHandler(settingSetting *setting.Setting, databaseManager store.DatabaseManager, logger *log.Logger, dashboardAdapter grafana.DashboardAdapter, browserPoolManager cdp.BrowserPoolManager, schedulers *cron.Schedulers, sender smtp.Sender) (*cron2.ReportScheduleCron, error) {
 	report := service.NewReportService(settingSetting, logger, dashboardAdapter, browserPoolManager)
 	reportScheduleStore := store2.NewReportScheduleStore(databaseManager, logger)
 	reportSchedule := service.NewReportScheduleService(logger, report, reportScheduleStore, schedulers, sender)

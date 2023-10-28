@@ -33,13 +33,13 @@ var wireBasicSet = wire.NewSet(
 	wire.Bind(new(cronhandler.ReportScheduleCronHandler), new(*cronhandler.ReportScheduleCron)),
 )
 
-func Initialize(*setting.Setting, store.DatabaseManager, *log.Logger, grafana.DashboardAdapter, cdp.BrowserPoolManager, cron.Schedulers, smtp.Sender) (*AppInstance, error) {
+func Initialize(*setting.Setting, store.DatabaseManager, *log.Logger, grafana.DashboardAdapter, cdp.BrowserPoolManager, *cron.Schedulers, smtp.Sender) (*AppInstance, error) {
 	wire.Build(wireBasicSet, newAppInstance)
 
 	return &AppInstance{}, nil
 }
 
-func InitializeCronHandler(*setting.Setting, store.DatabaseManager, *log.Logger, grafana.DashboardAdapter, cdp.BrowserPoolManager, cron.Schedulers, smtp.Sender) (*cronhandler.ReportScheduleCron, error) {
+func InitializeCronHandler(*setting.Setting, store.DatabaseManager, *log.Logger, grafana.DashboardAdapter, cdp.BrowserPoolManager, *cron.Schedulers, smtp.Sender) (*cronhandler.ReportScheduleCron, error) {
 	wire.Build(wireBasicSet)
 
 	return &cronhandler.ReportScheduleCron{}, nil

@@ -20,9 +20,6 @@ type Scheduler struct {
 	Cron *gocron.Scheduler
 }
 
-// Schedulers map scheduler per organization
-type Schedulers map[int]SchedulerManager
-
 func NewScheduler(location *time.Location) *Scheduler {
 	scheduler := gocron.NewScheduler(location)
 	scheduler.StartAsync()

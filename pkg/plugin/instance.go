@@ -34,7 +34,7 @@ type AppInstance struct {
 }
 
 // New creates a new *App instance.
-func New(logger *log.Logger, db store.DatabaseManager, is *setting.Setting, schedulers cron.Schedulers, m smtp.Sender, b cdp.BrowserPoolManager, gcli *grafana.Client) app.InstanceFactoryFunc {
+func New(logger *log.Logger, db store.DatabaseManager, is *setting.Setting, schedulers *cron.Schedulers, m smtp.Sender, b cdp.BrowserPoolManager, gcli *grafana.Client) app.InstanceFactoryFunc {
 	return func(ctx context.Context, s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
 		pluginContext := httpadapter.PluginConfigFromContext(ctx)
 		logger.Info("New", "pluginContext", pluginContext)
