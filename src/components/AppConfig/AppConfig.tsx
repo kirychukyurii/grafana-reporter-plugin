@@ -5,12 +5,15 @@ import { AppPluginMeta, GrafanaTheme2, PluginConfigPageProps, PluginMeta } from 
 import { getBackendSrv } from '@grafana/runtime';
 import { Button, Field, FieldSet, Input, SecretInput, useStyles2 } from '@grafana/ui';
 import { testIds } from '../testIds';
+import {types} from "sass";
+import Boolean = types.Boolean;
 
 export type AppPluginSettings = {
   apiUrl?: string;
 };
 
 type State = {
+  orgId: number;
   // The URL to reach our custom API.
   apiUrl: string;
   // Tells us if the API key secret is set.
@@ -25,9 +28,10 @@ export const AppConfig = ({ plugin }: AppConfigProps) => {
   const s = useStyles2(getStyles);
   const { enabled, pinned, jsonData, secureJsonFields } = plugin.meta;
   const [state, setState] = useState<State>({
+    orgId: 0,
     apiUrl: jsonData?.apiUrl || '',
     apiKey: '',
-    isApiKeySet: Boolean(secureJsonFields?.apiKey),
+    isApiKeySet: Boolean(secureJsonFields?.apiKey)
   });
 
   const onResetApiKey = () =>
@@ -123,7 +127,7 @@ const updatePluginAndReload = async (pluginId: string, data: Partial<PluginMeta<
 };
 
 export const updatePlugin = async (pluginId: string, data: Partial<PluginMeta>) => {
-  const response = await getBackendSrv().fetch({
+  const response = getBackendSrv().fetch({
     url: `/api/plugins/${pluginId}/settings`,
     method: 'POST',
     data,
