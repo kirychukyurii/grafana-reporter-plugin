@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/go-co-op/gocron v1.35.2
-	github.com/go-rod/rod v0.114.3
+	github.com/go-rod/rod v0.114.4
 	github.com/google/uuid v1.3.1
 	github.com/google/wire v0.5.0
 	github.com/gorilla/mux v1.8.0
