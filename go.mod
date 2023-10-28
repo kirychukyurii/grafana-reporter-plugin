@@ -1,6 +1,10 @@
 module github.com/kirychukyurii/grafana-reporter-plugin
 
-go 1.19
+go 1.21
+
+toolchain go1.21.2
+
+replace github.com/grafana/grafana-plugin-sdk-go => github.com/kirychukyurii/grafana-plugin-sdk-go v0.0.0-20231028190908-2d0ffc3353c3
 
 require (
 	github.com/go-co-op/gocron v1.35.2

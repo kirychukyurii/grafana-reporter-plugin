@@ -35,12 +35,13 @@ type AppInstance struct {
 
 // New creates a new *App instance.
 func New(logger *log.Logger, db store.DatabaseManager, is *setting.Setting, schedulers *cron.Schedulers, m smtp.Sender, b cdp.BrowserPoolManager, gcli *grafana.Client) app.InstanceFactoryFunc {
-	return func(ctx context.Context, s backend.AppInstanceSettings) (instancemgmt.Instance, error) {
-		pluginContext := httpadapter.PluginConfigFromContext(ctx)
-		logger.Info("New", "pluginContext", pluginContext)
+	return func(ctx context.Context, s backend.AppInstanceSettings, orgID int64, grafanaCfg backend.GrafanaCfg) (instancemgmt.Instance, error) {
+
 		_ = setting.NewInstanceSetting(s)
 
 		logger.Info("settings", "set", s)
+		logger.Info("orgID", "orgID", orgID)
+		logger.Info("grafanaCfg", "grafanaCfg", grafanaCfg)
 
 		/*
 
