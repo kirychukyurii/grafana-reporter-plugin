@@ -7,24 +7,34 @@ import (
 	"github.com/go-co-op/gocron"
 )
 
-type ScheduleManager interface {
+type SchedulerManager interface {
+
+	// Stop the scheduler
+	Stop()
+
 	ScheduleJob(interval string, jobTag string, jobFun interface{}, params ...interface{}) (*gocron.Job, error)
 	RemoveJob(jobTag string) error
 }
 
 type Scheduler struct {
-	OrgID int
-	Cron  *gocron.Scheduler
+	Cron *gocron.Scheduler
 }
 
-func NewScheduler(orgID int, location *time.Location) *Scheduler {
+// Schedulers map scheduler per organization
+type Schedulers map[int]SchedulerManager
+
+func NewScheduler(location *time.Location) *Scheduler {
 	scheduler := gocron.NewScheduler(location)
 	scheduler.StartAsync()
 
 	return &Scheduler{
-		OrgID: orgID,
-		Cron:  scheduler,
+		Cron: scheduler,
 	}
+}
+
+// Stop the scheduler
+func (s *Scheduler) Stop() {
+	s.Stop()
 }
 
 func (s *Scheduler) ScheduleJob(interval string, jobTag string, jobFun interface{}, params ...interface{}) (*gocron.Job, error) {

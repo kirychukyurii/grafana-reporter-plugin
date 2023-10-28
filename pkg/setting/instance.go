@@ -14,6 +14,8 @@ type InstanceSetting struct {
 	Timezone string `json:"timezone"`
 }
 
+type InstancesSetting map[int]InstanceSetting
+
 func NewInstanceSetting(settings backend.AppInstanceSettings) *InstanceSetting {
 	return nil
 }
@@ -26,15 +28,19 @@ func (s *InstanceSetting) Store(db store.DatabaseManager) error {
 	return nil
 }
 
-func InstanceSettingFromStore(db store.DatabaseManager) ([]InstanceSetting, error) {
+func InstanceSettingFromStore(db store.DatabaseManager) (InstancesSetting, error) {
 	var (
 		setting  InstanceSetting
 		settings = make([]InstanceSetting, 0)
+		is       InstancesSetting
 	)
 
 	if err := db.GetAll(storeBucket, &setting, boltdb.AppendFn(&settings)); err != nil {
 		return nil, err
 	}
+	for _, s := range settings {
+		is[s.OrgID] = s
+	}
 
-	return settings, nil
+	return is, nil
 }

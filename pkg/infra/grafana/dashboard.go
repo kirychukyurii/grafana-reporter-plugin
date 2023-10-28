@@ -35,7 +35,7 @@ type Dashboard struct {
 func (c *Client) Dashboard(ctx context.Context, opts entity.DashboardOpts) (*Dashboard, error) {
 	var dashboard Dashboard
 
-	dashboardUrl := fmt.Sprintf("%s/api/dashboards/uid/%s", c.setting.GrafanaConfig.URL, opts.DashboardID)
+	dashboardUrl := fmt.Sprintf("%s/api/dashboards/uid/%s", c.options.URL, opts.DashboardID)
 	if len(opts.Variables) > 0 {
 		dashboardUrl = fmt.Sprintf("%s?%s", dashboardUrl, opts.EncodeVariables())
 	}

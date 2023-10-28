@@ -56,6 +56,10 @@ func New(logger *log.Logger, options *Options) (*Database, error) {
 	database.MaxBatchDelay = time.Duration(options.MaxBatchDelay) * time.Second
 	db.DB = database
 
+	if err := db.Migrate(); err != nil {
+		return nil, err
+	}
+
 	return &db, nil
 }
 

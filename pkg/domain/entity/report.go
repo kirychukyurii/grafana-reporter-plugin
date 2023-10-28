@@ -29,7 +29,7 @@ type ReportOptions struct {
 type Report struct {
 	ID         int64           `json:"id,omitempty"`
 	Name       string          `json:"name"`
-	OrgID      int64           `json:"org_id,omitempty"`
+	OrgID      int             `json:"org_id,omitempty"`
 	CreatedAt  time.Time       `json:"created_at"`
 	UpdatedAt  time.Time       `json:"updated_at"`
 	DeletedAt  time.Time       `json:"deleted_at"`

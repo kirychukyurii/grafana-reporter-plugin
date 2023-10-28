@@ -7,8 +7,6 @@ import (
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/go-rod/rod/lib/proto"
-
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 )
 
 type BrowserManager interface {
@@ -23,11 +21,11 @@ type Browser struct {
 	Browser *rod.Browser
 }
 
-func NewBrowser(settings *config.ReporterAppConfig) (*Browser, error) {
+func NewBrowser(url string) (*Browser, error) {
 	var launch string
 
-	if settings.BrowserConfig.URL != "" {
-		ips, err := net.LookupIP(settings.BrowserConfig.URL)
+	if url != "" {
+		ips, err := net.LookupIP(url)
 		if err != nil {
 			return nil, fmt.Errorf("net.LookupIP: %v", err)
 		}

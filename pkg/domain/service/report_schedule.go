@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/entity"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
@@ -25,21 +24,19 @@ type ReportScheduleService interface {
 }
 
 type ReportSchedule struct {
-	settings *config.ReporterAppConfig
 	logger   *log.Logger
 	report   ReportService
 	store    store.ReportScheduleStoreManager
-	schedule cron.ScheduleManager
+	schedule cron.Schedulers
 	sender   smtp.Sender
 }
 
-func NewReportScheduleService(settings *config.ReporterAppConfig, logger *log.Logger, report ReportService, store store.ReportScheduleStoreManager, schedule cron.ScheduleManager, sender smtp.Sender) *ReportSchedule {
+func NewReportScheduleService(logger *log.Logger, report ReportService, store store.ReportScheduleStoreManager, schedule cron.Schedulers, sender smtp.Sender) *ReportSchedule {
 	subLogger := &log.Logger{
 		Logger: logger.With("component.type", "service", "component", "reportSchedule"),
 	}
 
 	return &ReportSchedule{
-		settings: settings,
 		logger:   subLogger,
 		report:   report,
 		store:    store,
@@ -111,7 +108,7 @@ func (r *ReportSchedule) NewReportScheduleJob(ctx context.Context, schedule enti
 		return nil
 	}
 
-	job, err := r.schedule.ScheduleJob(schedule.Interval, strconv.FormatInt(schedule.ID, 10), fn)
+	job, err := r.schedule[schedule.Report.OrgID].ScheduleJob(schedule.Interval, strconv.FormatInt(schedule.ID, 10), fn)
 	if err != nil {
 		return err
 	}

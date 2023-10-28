@@ -5,10 +5,10 @@ package plugin
 
 import (
 	"github.com/google/wire"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/setting"
 
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/grafana"
-	storaAdapter "github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
+	storeadapter "github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/service"
 	cronhandler "github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/cron"
 	httphandler "github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/http"
@@ -20,8 +20,8 @@ import (
 )
 
 var wireBasicSet = wire.NewSet(
-	storaAdapter.ProviderSet,
-	wire.Bind(new(storaAdapter.ReportScheduleStoreManager), new(*storaAdapter.ReportScheduleStore)),
+	storeadapter.ProviderSet,
+	wire.Bind(new(storeadapter.ReportScheduleStoreManager), new(*storeadapter.ReportScheduleStore)),
 	service.ProviderSet,
 	wire.Bind(new(service.ReportService), new(*service.Report)),
 	wire.Bind(new(service.ReportScheduleService), new(*service.ReportSchedule)),
@@ -33,7 +33,14 @@ var wireBasicSet = wire.NewSet(
 	wire.Bind(new(cronhandler.ReportScheduleCronHandler), new(*cronhandler.ReportScheduleCron)),
 )
 
-func Initialize(*config.ReporterAppConfig, store.DatabaseManager, *log.Logger, grafana.DashboardAdapter, cdp.BrowserPoolManager, cron.ScheduleManager, smtp.Sender) (*AppInstance, error) {
+func Initialize(*setting.Setting, store.DatabaseManager, *log.Logger, grafana.DashboardAdapter, cdp.BrowserPoolManager, cron.Schedulers, smtp.Sender) (*AppInstance, error) {
 	wire.Build(wireBasicSet, newAppInstance)
+
 	return &AppInstance{}, nil
+}
+
+func InitializeCronHandler(*setting.Setting, store.DatabaseManager, *log.Logger, grafana.DashboardAdapter, cdp.BrowserPoolManager, cron.Schedulers, smtp.Sender) (*cronhandler.ReportScheduleCron, error) {
+	wire.Build(wireBasicSet)
+
+	return &cronhandler.ReportScheduleCron{}, nil
 }

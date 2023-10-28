@@ -10,7 +10,6 @@ import (
 	"github.com/google/wire"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/grafana"
 	store2 "github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/store"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/service"
 	cron2 "github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/cron"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/handler/http"
@@ -19,23 +18,32 @@ import (
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/smtp"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/store"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/setting"
 )
 
 // Injectors from wire.go:
 
-func Initialize(reporterAppConfig *config.ReporterAppConfig, databaseManager store.DatabaseManager, logger *log.Logger, dashboardAdapter grafana.DashboardAdapter, browserPoolManager cdp.BrowserPoolManager, scheduleManager cron.ScheduleManager, sender smtp.Sender) (*AppInstance, error) {
-	report := service.NewReportService(reporterAppConfig, logger, dashboardAdapter, browserPoolManager)
+func Initialize(settingSetting *setting.Setting, databaseManager store.DatabaseManager, logger *log.Logger, dashboardAdapter grafana.DashboardAdapter, browserPoolManager cdp.BrowserPoolManager, schedulers cron.Schedulers, sender smtp.Sender) (*AppInstance, error) {
+	report := service.NewReportService(settingSetting, logger, dashboardAdapter, browserPoolManager)
 	httpReport := http.NewReportHandler(report)
 	reportScheduleStore := store2.NewReportScheduleStore(databaseManager, logger)
-	reportSchedule := service.NewReportScheduleService(reporterAppConfig, logger, report, reportScheduleStore, scheduleManager, sender)
+	reportSchedule := service.NewReportScheduleService(logger, report, reportScheduleStore, schedulers, sender)
 	httpReportSchedule := http.NewReportScheduleHandler(reportSchedule)
 	handler := http.New(httpReport, httpReportSchedule)
 	reportScheduleCron := cron2.NewReportScheduleCronHandler(logger, reportSchedule)
-	appInstance, err := newAppInstance(reporterAppConfig, handler, reportScheduleCron)
+	appInstance, err := newAppInstance(handler, reportScheduleCron)
 	if err != nil {
 		return nil, err
 	}
 	return appInstance, nil
+}
+
+func InitializeCronHandler(settingSetting *setting.Setting, databaseManager store.DatabaseManager, logger *log.Logger, dashboardAdapter grafana.DashboardAdapter, browserPoolManager cdp.BrowserPoolManager, schedulers cron.Schedulers, sender smtp.Sender) (*cron2.ReportScheduleCron, error) {
+	report := service.NewReportService(settingSetting, logger, dashboardAdapter, browserPoolManager)
+	reportScheduleStore := store2.NewReportScheduleStore(databaseManager, logger)
+	reportSchedule := service.NewReportScheduleService(logger, report, reportScheduleStore, schedulers, sender)
+	reportScheduleCron := cron2.NewReportScheduleCronHandler(logger, reportSchedule)
+	return reportScheduleCron, nil
 }
 
 // wire.go:

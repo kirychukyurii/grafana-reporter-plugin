@@ -10,11 +10,11 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/adapter/grafana"
-	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/config"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/domain/entity"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/cdp"
 	gutils "github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/grafana"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/infra/log"
+	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/setting"
 	"github.com/kirychukyurii/grafana-reporter-plugin/pkg/util"
 )
 
@@ -24,7 +24,7 @@ type ReportService interface {
 }
 
 type Report struct {
-	settings *config.ReporterAppConfig
+	settings *setting.Setting
 	logger   *log.Logger
 
 	grafanaHTTPClient grafana.DashboardAdapter
@@ -35,13 +35,13 @@ type Report struct {
 	page        cdp.PageManager
 }
 
-func NewReportService(settings *config.ReporterAppConfig, logger *log.Logger, grafanaHTTPClient grafana.DashboardAdapter, browserPool cdp.BrowserPoolManager) *Report {
+func NewReportService(s *setting.Setting, logger *log.Logger, grafanaHTTPClient grafana.DashboardAdapter, browserPool cdp.BrowserPoolManager) *Report {
 	subLogger := &log.Logger{
 		Logger: logger.With("component.type", "service", "component", "report"),
 	}
 
 	return &Report{
-		settings:          settings,
+		settings:          s,
 		logger:            subLogger,
 		grafanaHTTPClient: grafanaHTTPClient,
 		browserPool:       browserPool,
@@ -62,18 +62,18 @@ func (r *Report) NewReport(ctx context.Context, report entity.Report) (string, e
 		return "", fmt.Errorf("grafanaHTTPClient.Dashboard: %v", err)
 	}
 
-	tmpDir, err := util.TemporaryDir(filepath.Join(r.settings.DataDirectory, "file"))
+	tmpDir, err := util.TemporaryDir(filepath.Join(r.settings.AppSetting.DataDirectory, "file"))
 	if err != nil {
 		return "", fmt.Errorf("ensure dir RW: %v", err)
 	}
 
-	r.browser, err = r.browserPool.Get(r.settings)
+	r.browser, err = r.browserPool.Get(r.settings.AppSetting.GrafanaSetting.URL)
 	if err != nil {
 		return "", err
 	}
 	defer r.browserPool.Put(r.browser)
 
-	workers := util.Workers(r.settings.WorkersCount, len(dashboard.Model.Panels))
+	workers := util.Workers(r.settings.AppSetting.WorkersCount, len(dashboard.Model.Panels))
 	r.pagePool = cdp.NewPagePool(workers)
 	defer func(pagePool cdp.PagePoolManager) {
 		if tmpErr := pagePool.Cleanup(); tmpErr != nil {
@@ -117,8 +117,8 @@ func (r *Report) exportDashboardPNG(ctx context.Context, dashboard *gutils.Dashb
 	}
 	defer r.pagePool.Put(page)
 
-	url := fmt.Sprintf("%s/d/%s/db?kiosk&theme=light", r.settings.GrafanaConfig.URL, dashboard.Model.Uid)
-	headers := []string{"Authorization", r.settings.GrafanaConfig.BasicAuth()}
+	url := fmt.Sprintf("%s/d/%s/db?kiosk&theme=light", r.settings.AppSetting.GrafanaSetting.URL, dashboard.Model.Uid)
+	headers := []string{"Authorization", r.settings.AppSetting.GrafanaSetting.BasicAuth()}
 	if err = page.Prepare(url, headers, nil); err != nil {
 		return err
 	}
@@ -171,8 +171,8 @@ func (r *Report) exportPanelPNG(ctx context.Context, dashboard *gutils.Dashboard
 	}
 	defer r.pagePool.Put(page)
 
-	url := fmt.Sprintf("%s/d-solo/%s/db?panelId=%d&width=%d&height=%d&render=1", r.settings.GrafanaConfig.URL, dashboard.Model.Uid, panel.Id, panel.Width(), panel.Height())
-	headers := []string{"Authorization", r.settings.GrafanaConfig.BasicAuth()}
+	url := fmt.Sprintf("%s/d-solo/%s/db?panelId=%d&width=%d&height=%d&render=1", r.settings.AppSetting.GrafanaSetting.URL, dashboard.Model.Uid, panel.Id, panel.Width(), panel.Height())
+	headers := []string{"Authorization", r.settings.AppSetting.GrafanaSetting.BasicAuth()}
 	viewport := &cdp.PageViewportOpts{
 		Width:  panel.Width(),
 		Height: panel.Height(),
@@ -199,8 +199,8 @@ func (r *Report) exportCSV(ctx context.Context, dashboard *gutils.Dashboard, pan
 	}
 	defer r.pagePool.Put(page)
 
-	url := fmt.Sprintf("%s/d/%s/db?orgId=1&viewPanel=%d&inspect=%d&inspectTab=data", r.settings.GrafanaConfig.URL, dashboard.Model.Uid, panel.Id, panel.Id)
-	headers := []string{"Authorization", r.settings.GrafanaConfig.BasicAuth()}
+	url := fmt.Sprintf("%s/d/%s/db?orgId=1&viewPanel=%d&inspect=%d&inspectTab=data", r.settings.AppSetting.GrafanaSetting.URL, dashboard.Model.Uid, panel.Id, panel.Id)
+	headers := []string{"Authorization", r.settings.AppSetting.GrafanaSetting.BasicAuth()}
 	if err = page.Prepare(url, headers, nil); err != nil {
 		return err
 	}

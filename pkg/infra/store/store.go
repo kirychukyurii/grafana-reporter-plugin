@@ -14,6 +14,7 @@ const (
 )
 
 type DatabaseManager interface {
+	Migrate() error
 
 	// SetServiceName is a generic function used to create a bucket inside a database.
 	SetServiceName(bucketName string) error

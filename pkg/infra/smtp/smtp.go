@@ -8,19 +8,25 @@ import (
 	gomail "gopkg.in/mail.v2"
 )
 
-type Sender interface {
-	Send(to []string, subject, body []byte, attachments []string) error
-}
-
 type Mail struct {
 	from string
 
 	Dialer *gomail.Dialer
 }
 
-func New(host string, port int, username, password string) (*Mail, error) {
-	d := gomail.NewDialer(host, port, username, password)
-	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+type Options struct {
+	Host     string
+	Port     int
+	Username string
+	Password string
+	From     string
+}
+
+func New(options *Options) (*Mail, error) {
+	d := gomail.NewDialer(options.Host, options.Port, options.Username, options.Password)
+	d.TLSConfig = &tls.Config{
+		InsecureSkipVerify: true,
+	}
 
 	/*dial, err := d.Dial()
 	if err != nil {
@@ -28,10 +34,10 @@ func New(host string, port int, username, password string) (*Mail, error) {
 	}
 	defer dial.Close()*/
 
-	from := username
+	from := options.Username
 	_, err := mail.ParseAddress(from)
 	if err != nil {
-		from = fmt.Sprintf("%s@%s", username, host)
+		from = fmt.Sprintf("%s@%s", options.Username, options.Host)
 	}
 
 	return &Mail{
@@ -39,25 +45,4 @@ func New(host string, port int, username, password string) (*Mail, error) {
 
 		Dialer: d,
 	}, nil
-}
-
-func (m *Mail) Send(to []string, subject, body []byte, attachments []string) error {
-	msg := gomail.NewMessage()
-
-	msg.SetHeader("From", m.from)
-	msg.SetHeader("To", to...)
-	msg.SetHeader("Subject", string(subject))
-	msg.SetBody("text/html", string(body))
-
-	if len(attachments) > 0 {
-		for _, a := range attachments {
-			msg.Attach(a)
-		}
-	}
-
-	if err := m.Dialer.DialAndSend(msg); err != nil {
-		return fmt.Errorf("send message: %v", err)
-	}
-
-	return nil
 }

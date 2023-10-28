@@ -44,7 +44,10 @@ func NewPage(b BrowserManager) (*Page, error) {
 }
 
 func (p *Page) Prepare(url string, headers []string, viewport *PageViewportOpts) error {
-	p.Page.StopLoading()
+	if err := p.Page.StopLoading(); err != nil {
+		return err
+	}
+
 	if viewport != nil {
 		if err := p.Page.SetViewport(&proto.EmulationSetDeviceMetricsOverride{Width: viewport.Width, Height: viewport.Height}); err != nil {
 			return fmt.Errorf("set viewport: %v", err)
