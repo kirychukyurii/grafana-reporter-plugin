@@ -17,7 +17,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/pressly/goose/v3 v3.15.1
 	github.com/valyala/fasthttp v1.50.0
-	go.etcd.io/bbolt v1.3.7
+	go.etcd.io/bbolt v1.3.8
 	golang.org/x/sync v0.4.0
 	gopkg.in/mail.v2 v2.3.1
 	modernc.org/sqlite v1.26.0
