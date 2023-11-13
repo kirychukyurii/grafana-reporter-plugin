@@ -7,9 +7,9 @@ toolchain go1.21.2
 replace github.com/grafana/grafana-plugin-sdk-go => github.com/kirychukyurii/grafana-plugin-sdk-go v0.0.0-20231028190908-2d0ffc3353c3
 
 require (
-	github.com/go-co-op/gocron v1.35.2
+	github.com/go-co-op/gocron v1.36.0
 	github.com/go-rod/rod v0.114.4
-	github.com/google/uuid v1.3.1
+	github.com/google/uuid v1.4.0
 	github.com/google/wire v0.5.0
 	github.com/gorilla/mux v1.8.0
 	github.com/grafana/grafana-plugin-sdk-go v0.188.3
